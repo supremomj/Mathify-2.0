@@ -4,7 +4,9 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { seedCurriculumIfEmpty } = require('./auto-seed-curriculum');
 
-const dbPath = path.join(__dirname, '../mathify.db');
+// Use environment variable for database path in production (e.g. on Railway)
+// Default to project root 'mathify.db' for local development
+const dbPath = process.env.DATABASE_URL || process.env.DATABASE_PATH || path.join(__dirname, '../mathify.db');
 
 let db = null;
 
