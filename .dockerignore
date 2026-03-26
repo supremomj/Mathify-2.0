@@ -9,7 +9,6 @@ mathify.db
 mathify_backup.db
 /tmp
 /docs
-/scripts
 /knowledge
 /brain
 README.md
