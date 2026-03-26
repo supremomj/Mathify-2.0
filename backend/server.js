@@ -9,8 +9,27 @@ const logger = require('./logger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
+// Global error handlers for better production debugging
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION at:', promise, 'reason:', reason);
+});
+
+try {
+  app.use(cors());
+  app.use(express.json());
+
+  // Serve static UI files
+  app.use(express.static(path.join(__dirname, '../src')));
+  app.use('/assets', express.static(path.join(__dirname, '../assets')));
+} catch (e) {
+  console.error('CRITICAL INITIALIZATION ERROR:', e);
+  process.exit(1);
+}
 
 // Serve static UI files
 app.use(express.static(path.join(__dirname, '../src')));
