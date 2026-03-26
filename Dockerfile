@@ -1,5 +1,5 @@
-# Use official Node.js image
-FROM node:20-slim
+# Use the full Node.js image (more robust for native modules like sqlite3)
+FROM node:20
 
 # Set working directory
 WORKDIR /app
@@ -13,17 +13,14 @@ RUN npm install --production
 # Copy source code
 COPY . .
 
-# Create data directory for SQLite persistence
-RUN mkdir -p /data && chown node:node /data
+# Ensure data directory exists
+RUN mkdir -p /data
 
-# Expose the port (Railway/Render provide this via PORT env)
+# Expose the port (Render provides this via PORT env)
 EXPOSE 3000
 
 # Set environment variables
 ENV NODE_ENV=production
-
-# Run as non-privileged user
-USER node
 
 # Start the application
 CMD ["npm", "start"]
