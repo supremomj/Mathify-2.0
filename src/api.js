@@ -124,7 +124,13 @@ window.electronAPI = {
       throw new Error('Unknown API channel: ' + channel);
     }
 
-    const BASE_URL = 'http://localhost:3000';
+    // Detection logic for production vs development
+    const isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // If we're on localhost but on port 80 (WAMP), we still need the port 3000 backend.
+    // Otherwise, we assume the backend serves the frontend from the same origin.
+    const BASE_URL = (isLocalDevelopment && window.location.port !== '3000') 
+      ? 'http://localhost:3000' 
+      : window.location.origin;
     const fullPath = BASE_URL + path;
     
     try {

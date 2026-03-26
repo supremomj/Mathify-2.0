@@ -40,31 +40,25 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch — cache-first for static, network-first for API
+// Fetch — skip cross-origin, cache same-origin assets only
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // API calls: network-first with offline fallback
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          // Clone and cache successful API responses
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-    return;
+  // Skip cross-origin requests entirely (e.g. localhost:3000 API, Google Fonts, CDN)
+  // This prevents TypeError when trying to cache responses from other origins
+  if (url.origin !== self.location.origin) {
+    return; // Let browser handle it natively — no SW involvement
   }
 
   // Static assets: cache-first
   event.respondWith(
     caches.match(event.request).then(cached => {
       return cached || fetch(event.request).then(response => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        // Only cache valid same-origin responses
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
         return response;
       });
     })
