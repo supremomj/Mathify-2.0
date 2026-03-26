@@ -68,6 +68,15 @@ let currentUser = null;
 
     // Page navigation
     function switchPage(pageName) {
+      // Feature 5: Trophy Case intercept
+      if (pageName === 'trophycase') {
+        renderTrophyCase();
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        const navItem = document.querySelector('[data-page="trophycase"]');
+        if (navItem) navItem.classList.add('active');
+        return;
+      }
+
       // Hide all pages
       document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
@@ -1109,16 +1118,60 @@ let currentUser = null;
       currentQuestion: 0,
       score: 0,
       totalQuestions: 10,
-      nextTopic: null, // Store next topic when current is 100% complete
+      nextTopic: null,
       hintsUsed: 0,
       currentHintLevel: 0,
-      questionStartTime: null
+      questionStartTime: null,
+      // Feature 1: Adaptive Difficulty
+      difficulty: 'medium',
+      // Feature 2: Timer
+      timeLeft: 0,
+      timerInterval: null,
+      timerLimit: 45,
+      bonusPoints: 0,
+      // Feature 3: Review Mode
+      wrongAnswers: [],
+      // Feature 5: Coins
+      coinsEarned: 0
     };
+
+    // Feature 1: Determine difficulty from recent performance
+    async function getAdaptiveDifficulty(topic) {
+      try {
+        if (!currentUser) return 'medium';
+        const result = await window.electronAPI.invoke('get-student-topic-progress', currentUser.id, currentUser.studentGrade || 1);
+        if (result.success && result.progress && result.progress.length > 0) {
+          // Calculate average of recent scores
+          const scores = result.progress
+            .filter(p => p.best_score > 0)
+            .sort((a, b) => (b.last_attempt_at || 0) - (a.last_attempt_at || 0))
+            .slice(0, 5)
+            .map(p => p.best_score);
+          if (scores.length > 0) {
+            const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+            if (avg >= 90) return 'hard';
+            if (avg < 50) return 'easy';
+          }
+        }
+      } catch (e) {
+        console.log('Could not fetch adaptive difficulty, defaulting to medium');
+      }
+      return 'medium';
+    }
+
+    // Feature 2: Get timer limit based on grade
+    function getTimerLimit(grade) {
+      if (grade <= 2) return 30;
+      if (grade <= 4) return 45;
+      return 60;
+    }
 
     // Open game interface (full page)
     async function openGameInterface(topic) {
-      // Bypass difficulty selection, default to 'medium'
-      const difficulty = 'medium';
+      // Feature 1: Adaptive difficulty
+      const difficulty = await getAdaptiveDifficulty(topic);
+
+      const grade = topic.grade || (currentUser && currentUser.studentGrade) || 1;
 
       currentGame.topic = topic;
       currentGame.currentQuestion = 0;
@@ -1126,16 +1179,23 @@ let currentUser = null;
       currentGame.hintsUsed = 0;
       currentGame.currentHintLevel = 0;
       currentGame.questionStartTime = Date.now();
+      currentGame.difficulty = difficulty;
+      currentGame.timerLimit = getTimerLimit(grade);
+      currentGame.timeLeft = currentGame.timerLimit;
+      currentGame.bonusPoints = 0;
+      currentGame.wrongAnswers = [];
+      currentGame.coinsEarned = 0;
+      if (currentGame.timerInterval) { clearInterval(currentGame.timerInterval); currentGame.timerInterval = null; }
       
       // Reset achievement tracker
       achievementTracker.reset();
       
-      // Generate questions based on topic and selected difficulty
+      // Generate questions based on topic and adaptive difficulty
       const questions = await generateGameQuestions(topic, difficulty);
       currentGame.questions = questions;
       currentGame.totalQuestions = currentGame.questions.length;
 
-      // Hide dashboard elements (new UI structure)
+      // Hide dashboard elements
       const sidebar = document.querySelector('.sidebar');
       const mainContent = document.querySelector('.main-content');
       if (sidebar) sidebar.style.display = 'none';
@@ -1339,9 +1399,37 @@ let currentUser = null;
               </div>
             </div>
 
-            <div style="display: flex; gap: 15px; align-items: center; font-weight: 700; font-size: 18px;">
+            <div style="display: flex; gap: 15px; align-items: center; font-weight: 700; font-size: 16px;">
+              <div id="gameTimer" style="
+                background: var(--surface-alt);
+                border: 2px solid var(--border);
+                border-radius: 12px;
+                padding: 6px 14px;
+                color: var(--text-primary);
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 18px;
+                font-weight: 800;
+                min-width: 70px;
+                justify-content: center;
+              ">⏱ <span id="timerDisplay">${currentGame.timerLimit}</span>s</div>
+              <div style="
+                background: ${currentGame.difficulty === 'hard' ? 'rgba(239,68,68,0.15)' : currentGame.difficulty === 'easy' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)'};
+                color: ${currentGame.difficulty === 'hard' ? '#ef4444' : currentGame.difficulty === 'easy' ? '#10b981' : '#6366f1'};
+                border-radius: 10px;
+                padding: 6px 12px;
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              ">${currentGame.difficulty === 'hard' ? '🔥 Hard' : currentGame.difficulty === 'easy' ? '🌱 Easy' : '⚡ Medium'}</div>
               <div style="color: var(--warning); display: flex; align-items: center; gap: 5px;">
                 <span>⭐</span> ${currentGame.score}
+              </div>
+              <div style="color: #f59e0b; display: flex; align-items: center; gap: 5px; font-size: 15px;">
+                <span>🪙</span> <span id="coinsDisplay">${currentGame.coinsEarned}</span>
               </div>
             </div>
           </div>
@@ -1435,6 +1523,36 @@ let currentUser = null;
           </div>
         </div>
       `;
+
+      // Feature 2: Start countdown timer
+      if (currentGame.timerInterval) clearInterval(currentGame.timerInterval);
+      currentGame.timeLeft = currentGame.timerLimit;
+      const timerEl = document.getElementById('timerDisplay');
+      const timerContainer = document.getElementById('gameTimer');
+      if (timerEl) timerEl.textContent = currentGame.timeLeft;
+
+      currentGame.timerInterval = setInterval(() => {
+        currentGame.timeLeft--;
+        if (timerEl) timerEl.textContent = currentGame.timeLeft;
+        // Visual urgency
+        if (timerContainer) {
+          if (currentGame.timeLeft <= 5) {
+            timerContainer.style.borderColor = '#ef4444';
+            timerContainer.style.color = '#ef4444';
+            timerContainer.style.animation = 'pulse 0.5s ease-in-out';
+          } else if (currentGame.timeLeft <= 10) {
+            timerContainer.style.borderColor = '#f59e0b';
+            timerContainer.style.color = '#f59e0b';
+          }
+        }
+        // Auto-submit on timeout
+        if (currentGame.timeLeft <= 0) {
+          clearInterval(currentGame.timerInterval);
+          currentGame.timerInterval = null;
+          // Submit wrong answer automatically
+          checkAnswer(-1); // -1 signals timeout
+        }
+      }, 1000);
     }
 
     // Render answer input based on question type
@@ -1646,11 +1764,23 @@ let currentUser = null;
 
     // Check answer - ENHANCED VERSION
     window.checkAnswer = function(selectedIndex = null) {
+      // Feature 2: Stop the timer immediately
+      if (currentGame.timerInterval) {
+        clearInterval(currentGame.timerInterval);
+        currentGame.timerInterval = null;
+      }
+      const timeSpent = currentGame.timerLimit - currentGame.timeLeft;
+
       const question = currentGame.questions[currentGame.currentQuestion];
       let isCorrect = false;
       let userAnswer = null;
+      const isTimeout = (selectedIndex === -1);
 
-      if (question.type === 'multiple-choice' || question.type === 'true-false') {
+      if (isTimeout) {
+        // Timeout — automatically wrong
+        isCorrect = false;
+        userAnswer = null;
+      } else if (question.type === 'multiple-choice' || question.type === 'true-false') {
         userAnswer = selectedIndex;
         isCorrect = selectedIndex === question.correctAnswer;
       } else {
@@ -1668,6 +1798,36 @@ let currentUser = null;
         el.style.cursor = 'not-allowed';
       });
       
+      // Feature 5: Coin tracking
+      if (isCorrect) {
+        currentGame.coinsEarned += 10; // Base coins
+        if (timeSpent <= 10) {
+          currentGame.coinsEarned += 5; // Speed bonus
+          currentGame.bonusPoints++;
+        }
+        // Update coins display
+        const coinsEl = document.getElementById('coinsDisplay');
+        if (coinsEl) coinsEl.textContent = currentGame.coinsEarned;
+      }
+
+      // Feature 3: Track wrong answers for review
+      if (!isCorrect) {
+        const correctAnswerText = (question.type === 'multiple-choice' || question.type === 'true-false')
+          ? question.options[question.correctAnswer]
+          : question.correctAnswer;
+        const userAnswerText = isTimeout ? '⏱ Time expired'
+          : (question.type === 'multiple-choice' || question.type === 'true-false')
+            ? (userAnswer !== null && question.options[userAnswer] ? question.options[userAnswer] : 'No answer')
+            : (userAnswer !== null ? userAnswer : 'No answer');
+        currentGame.wrongAnswers.push({
+          questionText: question.question,
+          userAnswer: userAnswerText,
+          correctAnswer: correctAnswerText,
+          explanation: question.explanation || '',
+          icon: question.icon || '📝'
+        });
+      }
+
       const explanation = generateExplanation(
         question, 
         userAnswer !== null ? ((question.type === 'multiple-choice' || question.type === 'true-false') ? question.options[userAnswer] : userAnswer) : 'No answer',
@@ -2104,11 +2264,48 @@ let currentUser = null;
               <div style="color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 600;">
                 Score: ${currentGame.score} out of ${currentGame.totalQuestions}
               </div>
+              <div style="display: flex; gap: 20px; margin-top: 10px; justify-content: center; flex-wrap: wrap;">
+                <div style="
+                  background: ${currentGame.difficulty === 'hard' ? 'rgba(239,68,68,0.1)' : currentGame.difficulty === 'easy' ? 'rgba(16,185,129,0.1)' : 'rgba(99,102,241,0.1)'};
+                  color: ${currentGame.difficulty === 'hard' ? '#ef4444' : currentGame.difficulty === 'easy' ? '#10b981' : '#6366f1'};
+                  border-radius: 10px; padding: 6px 14px; font-size: 14px; font-weight: 700;
+                ">${currentGame.difficulty === 'hard' ? '🔥 Hard' : currentGame.difficulty === 'easy' ? '🌱 Easy' : '⚡ Medium'}</div>
+                <div style="background: rgba(245,158,11,0.1); color: #f59e0b; border-radius: 10px; padding: 6px 14px; font-size: 14px; font-weight: 700;">
+                  🪙 ${currentGame.coinsEarned} coins earned
+                </div>
+                ${currentGame.bonusPoints > 0 ? `<div style="background: rgba(168,85,247,0.1); color: #a855f7; border-radius: 10px; padding: 6px 14px; font-size: 14px; font-weight: 700;">⚡ ${currentGame.bonusPoints} speed bonus</div>` : ''}
+              </div>
             </div>
             
             ${achievementsHTML}
 
             <div style="display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 30px;">
+              ${currentGame.wrongAnswers.length > 0 ? `
+                <button onclick="showReviewMode()" style="
+                  background: #f59e0b;
+                  color: white;
+                  border: none;
+                  border-bottom: 6px solid #d97706;
+                  padding: 16px 40px;
+                  border-radius: 20px;
+                  font-size: 18px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  font-family: 'Inter', sans-serif;
+                  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+                  width: 100%;
+                  max-width: 400px;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 10px;
+                " onmousedown="this.style.transform='translateY(4px)'; this.style.borderBottomWidth='2px';"
+                onmouseup="this.style.transform='translateY(0)'; this.style.borderBottomWidth='6px';">
+                  📖 Review Mistakes (${currentGame.wrongAnswers.length})
+                </button>
+              ` : ''}
               ${isFullyCompleted && currentGame.nextTopic ? `
                 <button onclick="proceedToNextQuiz()" style="
                   background: var(--success);
@@ -2152,6 +2349,198 @@ let currentUser = null;
               onmouseup="this.style.transform='translateY(0)'; this.style.borderBottomWidth='6px';">
                 Return to Dashboard
               </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Feature 3: Review Mode — show wrong answers with explanations
+    window.showReviewMode = function() {
+      const gameContainer = document.getElementById('gameContainer');
+      if (!gameContainer) return;
+
+      const wrongAnswers = currentGame.wrongAnswers;
+      const cardsHTML = wrongAnswers.map((wa, i) => `
+        <div style="
+          background: #ffffff;
+          border: 2px solid var(--border);
+          border-left: 6px solid #ef4444;
+          border-radius: 16px;
+          padding: 24px;
+          margin-bottom: 16px;
+        ">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+            <span style="font-size: 24px;">${wa.icon}</span>
+            <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; color: var(--text-secondary);">Question ${i + 1}</span>
+          </div>
+          <div style="font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">
+            ${wa.questionText}
+          </div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+            <div style="
+              background: rgba(239,68,68,0.1);
+              border: 1px solid rgba(239,68,68,0.3);
+              color: #ef4444;
+              padding: 10px 18px;
+              border-radius: 12px;
+              font-weight: 600;
+              font-size: 15px;
+            ">❌ Your answer: ${wa.userAnswer}</div>
+            <div style="
+              background: rgba(16,185,129,0.1);
+              border: 1px solid rgba(16,185,129,0.3);
+              color: #10b981;
+              padding: 10px 18px;
+              border-radius: 12px;
+              font-weight: 600;
+              font-size: 15px;
+            ">✓ Correct: ${wa.correctAnswer}</div>
+          </div>
+          ${wa.explanation ? `
+            <div style="
+              background: var(--surface-alt);
+              border-radius: 12px;
+              padding: 16px;
+              font-family: 'Inter', sans-serif;
+              font-size: 14px;
+              color: var(--text-secondary);
+              line-height: 1.6;
+              white-space: pre-line;
+            ">💡 ${wa.explanation}</div>
+          ` : ''}
+        </div>
+      `).join('');
+
+      gameContainer.innerHTML = `
+        <div style="
+          min-height: 100vh;
+          padding: 30px 20px 60px;
+          background: var(--bg);
+        ">
+          <div style="max-width: 700px; margin: 0 auto;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px;">
+              <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                📖 Review Your Mistakes
+              </h2>
+              <button onclick="closeGameInterface()" style="
+                background: var(--primary);
+                color: white;
+                border: none;
+                border-bottom: 4px solid #4f46e5;
+                padding: 12px 30px;
+                border-radius: 16px;
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: 'Inter', sans-serif;
+              " onmousedown="this.style.transform='translateY(3px)'; this.style.borderBottomWidth='1px';"
+              onmouseup="this.style.transform='translateY(0)'; this.style.borderBottomWidth='4px';">
+                Done
+              </button>
+            </div>
+            <p style="font-family: 'Inter', sans-serif; color: var(--text-secondary); font-size: 16px; margin-bottom: 25px;">
+              You got <strong style="color: #ef4444;">${wrongAnswers.length}</strong> question${wrongAnswers.length > 1 ? 's' : ''} wrong. Review them below to learn from your mistakes!
+            </p>
+            ${cardsHTML}
+          </div>
+        </div>
+      `;
+    }
+
+    // Feature 5: Trophy Case — Avatars & Rewards
+    function renderTrophyCase() {
+      // Avatar definitions with coin unlock thresholds
+      const AVATARS = [
+        { emoji: '🌱', name: 'Seedling', coins: 0,    desc: 'Starting your journey!' },
+        { emoji: '⭐', name: 'Star',      coins: 50,   desc: 'Getting the hang of it!' },
+        { emoji: '🦋', name: 'Butterfly', coins: 100,  desc: 'Growing fast!' },
+        { emoji: '🦁', name: 'Lion',      coins: 200,  desc: 'Roaring with confidence!' },
+        { emoji: '🚀', name: 'Rocket',    coins: 350,  desc: 'Shooting for the stars!' },
+        { emoji: '🏆', name: 'Champion',  coins: 500,  desc: 'A true math champion!' },
+        { emoji: '🌟', name: 'Superstar', coins: 750,  desc: 'Shining the brightest!' },
+        { emoji: '💎', name: 'Diamond',   coins: 1000, desc: 'Rare and brilliant!' },
+      ];
+
+      // Calculate total coins from localStorage (persisted across sessions)
+      const savedCoins = parseInt(localStorage.getItem('mathify_total_coins') || '0');
+      const sessionCoins = currentGame.coinsEarned || 0;
+      const totalCoins = savedCoins + sessionCoins;
+      localStorage.setItem('mathify_total_coins', totalCoins);
+
+      const mainContent = document.querySelector('.main-content');
+      if (!mainContent) return;
+
+      // Show main content
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+      const avatarCards = AVATARS.map(av => {
+        const unlocked = totalCoins >= av.coins;
+        return `
+          <div style="
+            background: ${unlocked ? '#ffffff' : 'var(--surface-alt)'};
+            border: 2px solid ${unlocked ? 'var(--primary)' : 'var(--border)'};
+            border-radius: 20px;
+            padding: 24px 16px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.2s;
+            ${unlocked ? 'box-shadow: 0 4px 20px rgba(99,102,241,0.15);' : 'opacity: 0.6;'}
+          " ${unlocked ? 'onmouseover="this.style.transform=\'translateY(-4px)\'"  onmouseout="this.style.transform=\'none\'"' : ''}>
+            ${!unlocked ? `<div style="position:absolute;top:10px;right:10px;font-size:18px;">🔒</div>` : ''}
+            <div style="font-size: 52px; margin-bottom: 10px;">${av.emoji}</div>
+            <div style="font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:17px; color:var(--text-primary); margin-bottom:4px;">${av.name}</div>
+            <div style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">${av.desc}</div>
+            <div style="display:inline-block; background:${unlocked ? 'rgba(245,158,11,0.15)' : 'var(--border)'}; color:${unlocked ? '#f59e0b' : 'var(--text-secondary)'}; border-radius:20px; padding:4px 12px; font-size:13px; font-weight:700;">
+              🪙 ${av.coins === 0 ? 'Free' : av.coins + ' coins'}
+            </div>
+            ${unlocked ? `<div style="margin-top:8px; color:var(--success); font-size:13px; font-weight:700;">✓ Unlocked!</div>` : `<div style="margin-top:8px; color:var(--text-secondary); font-size:12px;">${av.coins - totalCoins} more to unlock</div>`}
+          </div>
+        `;
+      }).join('');
+
+      // Find next locked avatar
+      const nextAvatar = AVATARS.find(av => totalCoins < av.coins);
+      const progressPct = nextAvatar ? Math.round((totalCoins / nextAvatar.coins) * 100) : 100;
+
+      mainContent.innerHTML = `
+        <div id="page-trophycase" class="page active" style="padding: 30px;">
+          <div style="max-width: 900px; margin: 0 auto;">
+            <h1 style="font-family:'Space Grotesk',sans-serif; font-size:32px; font-weight:800; color:var(--text-primary); margin-bottom:6px;">🏆 Trophy Case</h1>
+            <p style="color:var(--text-secondary); font-size:16px; margin-bottom:28px;">Earn coins by answering questions correctly and fast — unlock all avatars!</p>
+            
+            <div style="
+              background: #ffffff;
+              border: 2px solid var(--border);
+              border-radius: 20px;
+              padding: 24px 28px;
+              margin-bottom: 28px;
+              display: flex;
+              align-items: center;
+              gap: 24px;
+              flex-wrap: wrap;
+            ">
+              <div style="font-size: 48px;">${AVATARS.filter(av => totalCoins >= av.coins).slice(-1)[0]?.emoji || '🌱'}</div>
+              <div style="flex: 1; min-width: 200px;">
+                <div style="font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:20px; color:var(--text-primary); margin-bottom:4px;">
+                  ${AVATARS.filter(av => totalCoins >= av.coins).slice(-1)[0]?.name || 'Seedling'} — Current Avatar
+                </div>
+                <div style="color:var(--text-secondary); font-size:15px; margin-bottom:10px;">🪙 Total Coins: <strong style="color:#f59e0b;">${totalCoins.toLocaleString()}</strong></div>
+                ${nextAvatar ? `
+                  <div style="width:100%; background:var(--border); border-radius:8px; height:12px; overflow:hidden;">
+                    <div style="background:linear-gradient(90deg,#f59e0b,#fbbf24); width:${progressPct}%; height:100%; border-radius:8px; transition:width 0.6s;"></div>
+                  </div>
+                  <div style="font-size:13px; color:var(--text-secondary); margin-top:6px;">${progressPct}% to unlock ${nextAvatar.emoji} ${nextAvatar.name} (${nextAvatar.coins} coins)</div>
+                ` : `<div style="color:var(--success);font-weight:700;">🎉 All avatars unlocked!</div>`}
+              </div>
+              <div style="text-align:center;">
+                <div style="font-family:'Space Grotesk',sans-serif; font-size:36px; font-weight:800; color:var(--primary);">${AVATARS.filter(av => totalCoins >= av.coins).length}/${AVATARS.length}</div>
+                <div style="font-size:13px; color:var(--text-secondary);">Unlocked</div>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:16px;">
+              ${avatarCards}
             </div>
           </div>
         </div>
@@ -2286,6 +2675,9 @@ let currentUser = null;
 
     // Close game interface
     window.closeGameInterface = function() {
+      // Feature 2: Clear timer
+      if (currentGame.timerInterval) { clearInterval(currentGame.timerInterval); currentGame.timerInterval = null; }
+
       const gameContainer = document.getElementById('gameContainer');
       if (gameContainer) {
         gameContainer.remove();

@@ -11,8 +11,15 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="student-dashboard.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6366f1">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="api.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').then(() => console.log('[PWA] Service Worker registered'));
+    }
+  </script>
 </head>
 
 <body>
@@ -60,6 +67,10 @@
           </path>
         </svg>
         <span class="nav-text">Achievements</span>
+      </div>
+      <div class="nav-item" data-page="trophycase">
+        <span class="nav-icon" style="font-size: 20px; min-width: 24px; text-align: center;">🏆</span>
+        <span class="nav-text">Trophy Case</span>
       </div>
     </nav>
 
