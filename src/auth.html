@@ -8,30 +8,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
       --primary: #6366f1;
       --primary-dark: #4f46e5;
       --secondary: #8b5cf6;
       --accent: #ec4899;
-      --bg-dark: #0f172a;
-      --bg-light: #1e293b;
-      --text-primary: #f1f5f9;
-      --text-secondary: #cbd5e1;
-      --card-bg: rgba(30, 41, 59, 0.6);
-      --card-border: rgba(148, 163, 184, 0.1);
-      --input-bg: rgba(15, 23, 42, 0.8);
-      --input-border: rgba(148, 163, 184, 0.2);
+      --success: #10b981;
+      --bg: #f8f9ff;
+      --surface: #ffffff;
+      --text-primary: #1e1b4b;
+      --text-secondary: #64748b;
+      --border: rgba(99, 102, 241, 0.18);
+      --input-bg: #f8f9ff;
+      --input-border: #e2e8f0;
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-dark);
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
       color: var(--text-primary);
       min-height: 100vh;
       display: flex;
@@ -42,52 +38,59 @@
       overflow: hidden;
     }
 
-    /* Background effects */
-    .bg-mesh {
+    /* Soft gradient bg */
+    .bg-gradient {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 15% 25%, rgba(99,102,241,0.16) 0px, transparent 55%),
+        radial-gradient(ellipse at 85% 75%, rgba(139,92,246,0.14) 0px, transparent 50%),
+        radial-gradient(ellipse at 75% 15%, rgba(236,72,153,0.10) 0px, transparent 45%),
+        linear-gradient(160deg, #f0f4ff 0%, #fdf0ff 60%, #fff0f8 100%);
       z-index: 0;
-      background: 
-        radial-gradient(at 20% 30%, rgba(99, 102, 241, 0.2) 0px, transparent 50%),
-        radial-gradient(at 80% 70%, rgba(139, 92, 246, 0.2) 0px, transparent 50%),
-        radial-gradient(at 50% 50%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
-      animation: meshMove 15s ease infinite;
     }
 
-    @keyframes meshMove {
-      0%, 100% { transform: scale(1) rotate(0deg); }
-      50% { transform: scale(1.1) rotate(5deg); }
-    }
-
-    .grid-overlay {
+    /* Floating math symbols */
+    .math-float {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: 
-        linear-gradient(rgba(148, 163, 184, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148, 163, 184, 0.02) 1px, transparent 1px);
-      background-size: 40px 40px;
+      inset: 0;
       z-index: 1;
       pointer-events: none;
+      overflow: hidden;
+    }
+    .math-float span {
+      position: absolute;
+      font-size: clamp(1.2rem, 2.5vw, 2rem);
+      font-weight: 700;
+      opacity: 0;
+      animation: floatUp 14s linear infinite;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .math-float span:nth-child(1) { left: 5%;  color:rgba(99,102,241,0.2); animation-delay:0s; }
+    .math-float span:nth-child(2) { left: 18%; color:rgba(236,72,153,0.18); animation-delay:3s; animation-duration:11s; }
+    .math-float span:nth-child(3) { left: 35%; color:rgba(16,185,129,0.18); animation-delay:6s; animation-duration:16s; }
+    .math-float span:nth-child(4) { left: 55%; color:rgba(245,158,11,0.2); animation-delay:1s; animation-duration:13s; }
+    .math-float span:nth-child(5) { left: 72%; color:rgba(139,92,246,0.18); animation-delay:8s; animation-duration:15s; }
+    .math-float span:nth-child(6) { left: 88%; color:rgba(99,102,241,0.16); animation-delay:4s; animation-duration:12s; }
+    @keyframes floatUp {
+      0%   { transform: translateY(110vh) rotate(0deg);  opacity: 0; }
+      8%   { opacity: 1; }
+      90%  { opacity: 0.7; }
+      100% { transform: translateY(-10vh) rotate(20deg); opacity: 0; }
     }
 
+    /* Back button */
     .back-btn {
       position: fixed;
-      top: 2rem;
-      left: 2rem;
-      width: 50px;
-      height: 50px;
-      background: var(--card-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--card-border);
+      top: 1.5rem;
+      left: 1.5rem;
+      width: 44px;
+      height: 44px;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      color: var(--text-primary);
-      font-size: 1.5rem;
+      color: var(--primary);
+      font-size: 1.3rem;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -95,597 +98,605 @@
       transition: all 0.3s;
       z-index: 10;
       text-decoration: none;
+      box-shadow: 0 2px 12px rgba(99,102,241,0.1);
     }
 
     .back-btn:hover {
-      background: rgba(30, 41, 59, 0.9);
+      background: rgba(99,102,241,0.08);
       border-color: var(--primary);
-      transform: translateX(-4px);
+      transform: translateX(-3px);
+      box-shadow: 0 4px 16px rgba(99,102,241,0.2);
     }
 
+    /* Auth container */
     .auth-container {
       position: relative;
       z-index: 2;
       width: 100%;
-      max-width: 480px;
+      max-width: 460px;
     }
 
     .auth-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
-      padding: 3rem;
-      box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.3),
-        0 0 40px rgba(99, 102, 241, 0.1);
-      animation: slideUp 0.6s ease-out;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow:
+        0 20px 60px rgba(99,102,241,0.12),
+        0 4px 16px rgba(0,0,0,0.06);
+      animation: slideUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
     }
 
     @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(32px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Colorful top band */
+    .card-band {
+      height: 6px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+    }
+
+    .card-body {
+      padding: 2.5rem;
     }
 
     .auth-header {
       text-align: center;
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
     }
 
     .auth-logo {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
       object-fit: cover;
-      border: 2px solid var(--primary);
-      margin: 0 auto 1.5rem;
-      box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+      border: 2px solid rgba(99,102,241,0.2);
+      margin: 0 auto 1.25rem;
+      box-shadow: 0 8px 24px rgba(99,102,241,0.2);
+      display: block;
     }
 
     .auth-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 2rem;
+      font-size: 1.75rem;
       font-weight: 700;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      margin-bottom: 0.35rem;
+      color: var(--text-primary);
     }
 
     .auth-subtitle {
       color: var(--text-secondary);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
     }
 
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
+    /* Form */
+    .form-group { margin-bottom: 1.25rem; }
 
     .form-label {
       display: block;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
       color: var(--text-secondary);
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
-    .input-wrapper {
-      position: relative;
-    }
+    .input-wrapper { position: relative; }
 
     .form-input {
       width: 100%;
-      padding: 1rem 1.25rem;
+      padding: 0.85rem 1rem;
       background: var(--input-bg);
-      border: 1px solid var(--input-border);
+      border: 1.5px solid var(--input-border);
       border-radius: 12px;
       color: var(--text-primary);
-      font-size: 1rem;
+      font-size: 0.97rem;
       font-family: 'Inter', sans-serif;
-      transition: all 0.3s;
+      transition: all 0.25s;
     }
 
     .form-input:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-      background: rgba(15, 23, 42, 0.9);
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+      background: #fff;
     }
 
-    .form-input::placeholder {
-      color: rgba(203, 213, 225, 0.4);
-    }
+    .form-input::placeholder { color: #c0c8d8; }
 
     .password-toggle {
       position: absolute;
-      right: 1rem;
+      right: 0.75rem;
       top: 50%;
       transform: translateY(-50%);
       background: none;
       border: none;
       color: var(--text-secondary);
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       cursor: pointer;
-      padding: 0.5rem;
-      transition: color 0.3s;
+      padding: 0.25rem;
+      transition: color 0.2s;
+      box-shadow: none;
+      margin: 0;
     }
 
     .password-toggle:hover {
       color: var(--primary);
+      transform: translateY(-50%);
+      box-shadow: none;
     }
 
     .form-link {
       display: block;
-      text-align: center;
+      text-align: right;
       color: var(--primary);
       text-decoration: none;
-      font-size: 0.9rem;
-      margin-top: 1rem;
-      transition: color 0.3s;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      font-weight: 500;
+      transition: color 0.2s;
     }
 
-    .form-link:hover {
-      color: var(--secondary);
-    }
+    .form-link:hover { color: var(--secondary); }
 
+    /* Submit button */
     .btn-submit {
       width: 100%;
-      padding: 1rem;
+      padding: 0.95rem;
       background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
       border: none;
       border-radius: 12px;
       color: white;
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 0.97rem;
+      font-weight: 700;
       font-family: 'Inter', sans-serif;
       cursor: pointer;
       transition: all 0.3s;
-      margin-top: 1.5rem;
-      position: relative;
-      overflow: hidden;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .btn-submit::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-
-    .btn-submit:hover::before {
-      width: 400px;
-      height: 400px;
+      margin-top: 1.25rem;
+      box-shadow: 0 6px 20px rgba(99,102,241,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      letter-spacing: 0.02em;
     }
 
     .btn-submit:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 12px 32px rgba(99,102,241,0.45);
     }
 
-    .btn-secondary {
+    .btn-back-form {
       width: 100%;
-      padding: 1rem;
+      padding: 0.85rem;
       background: transparent;
-      border: 1px solid var(--card-border);
+      border: 1.5px solid var(--border);
       border-radius: 12px;
-      color: var(--text-primary);
-      font-size: 1rem;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
       font-weight: 500;
       font-family: 'Inter', sans-serif;
       cursor: pointer;
-      transition: all 0.3s;
-      margin-top: 1rem;
+      transition: all 0.25s;
+      margin-top: 0.75rem;
     }
 
-    .btn-secondary:hover {
+    .btn-back-form:hover {
       border-color: var(--primary);
-      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+      background: rgba(99,102,241,0.04);
     }
 
+    /* Messages */
     .error-message {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #fca5a5;
-      padding: 1rem;
+      background: #fff1f2;
+      border: 1.5px solid #fecdd3;
+      color: #be123c;
+      padding: 0.85rem 1rem;
       border-radius: 12px;
       margin-bottom: 1rem;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       display: none;
     }
 
     .success-message {
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #6ee7b7;
-      padding: 1rem;
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      color: #166534;
+      padding: 0.85rem 1rem;
       border-radius: 12px;
       margin-bottom: 1rem;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       display: none;
     }
 
-    .selection-screen {
-      text-align: center;
-    }
+    /* Selection screen */
+    .selection-screen { text-align: center; }
 
     .selection-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 2.5rem;
+      font-size: 2rem;
       font-weight: 700;
-      margin-bottom: 1rem;
-      background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
     }
 
     .selection-subtitle {
       color: var(--text-secondary);
-      margin-bottom: 2.5rem;
-      font-size: 1rem;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
     }
 
-    .form-screen {
-      display: none;
+    .form-screen { display: none; }
+    .form-screen.active { display: block; }
+
+    .contact-note {
+      color: var(--text-secondary);
+      margin-top: 1.25rem;
+      font-size: 0.85rem;
+      line-height: 1.5;
     }
 
-    .form-screen.active {
-      display: block;
-    }
-
-    @media (max-width: 640px) {
-      .auth-card {
-        padding: 2rem;
-      }
-
-      .auth-title {
-        font-size: 1.75rem;
-      }
+    @media (max-width: 480px) {
+      .card-body { padding: 2rem 1.5rem; }
+      .auth-title { font-size: 1.5rem; }
     }
   </style>
+  <script src="api.js"></script>
 </head>
 <body>
-  <div class="bg-mesh"></div>
-  <div class="grid-overlay"></div>
+  <div class="bg-gradient"></div>
 
-  <a href="landing.html" class="back-btn">←</a>
+  <div class="math-float">
+    <span>+</span><span>÷</span><span>×</span><span>−</span><span>=</span><span>π</span>
+  </div>
+
+  <button class="back-btn" onclick="window.navigateToLanding()">←</button>
 
   <div class="auth-container">
+
     <!-- Selection Screen -->
-    <div class="auth-card selection-screen" id="selectionScreen">
-      <div class="auth-header">
-        <img src="../assets/Mathify Logo.png" alt="Mathify" class="auth-logo">
-        <h1 class="selection-title">Welcome to Mathify</h1>
-        <p class="selection-subtitle">Sign in to continue your learning journey</p>
+    <div class="auth-card" id="selectionScreen">
+      <div class="card-band"></div>
+      <div class="card-body selection-screen">
+        <div class="auth-header">
+          <img src="../assets/Mathify Logo.png" alt="Mathify" class="auth-logo">
+          <h1 class="selection-title">Welcome to Mathify</h1>
+          <p class="selection-subtitle">Sign in to continue your learning journey.</p>
+        </div>
+        <button class="btn-submit" onclick="showForm('login')">
+          Sign In
+        </button>
+        <p class="contact-note">
+          Don't have an account?<br>
+          Contact your administrator to get access.
+        </p>
       </div>
-      <button class="btn-submit" onclick="showForm('login')">Sign In</button>
-      <p style="color: var(--text-secondary); margin-top: 1.5rem; font-size: 0.9rem;">
-        Contact your administrator to get an account
-      </p>
     </div>
 
     <!-- Login Form -->
     <div class="auth-card form-screen" id="loginForm">
-      <div class="auth-header">
-        <h2 class="auth-title">Welcome Back</h2>
-        <p class="auth-subtitle">Enter your credentials to continue</p>
-      </div>
-
-      <form id="loginFormElement" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required />
+      <div class="card-band"></div>
+      <div class="card-body">
+        <div class="auth-header">
+          <img src="../assets/Mathify Logo.png" alt="Mathify" class="auth-logo">
+          <h2 class="auth-title">Welcome Back</h2>
+          <p class="auth-subtitle">Enter your credentials to continue</p>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <div class="input-wrapper">
-            <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required />
-            <button type="button" class="password-toggle" id="loginPasswordToggle" 
-              onmousedown="togglePassword('loginPassword', event)" 
-              onmouseup="togglePassword('loginPassword', event)" 
-              onmouseleave="togglePassword('loginPassword', {type: 'mouseup'})"
-              ontouchstart="togglePassword('loginPassword', event)" 
-              ontouchend="togglePassword('loginPassword', event)">👁️</button>
+        <form id="loginFormElement" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required />
           </div>
-        </div>
 
-        <div id="loginError" class="error-message"></div>
-        <a href="#" onclick="showForgotPassword(); return false;" class="form-link">Forgot Password?</a>
-        
-        <button type="submit" class="btn-submit">Sign In</button>
-        <button type="button" class="btn-secondary" onclick="showSelection()">← Back</button>
-      </form>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required style="padding-right: 2.5rem;" />
+              <button type="button" class="password-toggle" id="loginPasswordToggle"
+                onmousedown="togglePassword('loginPassword', event)"
+                onmouseup="togglePassword('loginPassword', event)"
+                onmouseleave="togglePassword('loginPassword', {type: 'mouseup'})"
+                ontouchstart="togglePassword('loginPassword', event)"
+                ontouchend="togglePassword('loginPassword', event)">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="loginPasswordToggle_icon"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+            <a href="#" onclick="showForgotPassword(); return false;" class="form-link">Forgot password?</a>
+          </div>
+
+          <div id="loginError" class="error-message"></div>
+
+          <button type="submit" class="btn-submit">Sign In</button>
+          <button type="button" class="btn-back-form" onclick="showSelection()">← Back</button>
+        </form>
+      </div>
     </div>
 
     <!-- Forgot Password Form -->
     <div class="auth-card form-screen" id="forgotPasswordForm">
-      <div class="auth-header">
-        <h2 class="auth-title">Reset Password</h2>
-        <p class="auth-subtitle">Enter your email to receive a reset link</p>
-      </div>
-
-      <form id="forgotPasswordFormElement" onsubmit="handleForgotPassword(event)">
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" id="forgotEmail" class="form-input" placeholder="your@email.com" required />
+      <div class="card-band"></div>
+      <div class="card-body">
+        <div class="auth-header">
+          <h2 class="auth-title">Reset Password</h2>
+          <p class="auth-subtitle">Enter your email to receive a reset link</p>
         </div>
 
-        <div id="forgotPasswordError" class="error-message"></div>
-        <div id="forgotPasswordSuccess" class="success-message"></div>
-        
-        <button type="submit" class="btn-submit">Send Reset Link</button>
-        <button type="button" class="btn-secondary" onclick="showForm('login')">← Back to Login</button>
-      </form>
+        <form id="forgotPasswordFormElement" onsubmit="handleForgotPassword(event)">
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input type="email" id="forgotEmail" class="form-input" placeholder="your@email.com" required />
+          </div>
+
+          <div id="forgotPasswordError" class="error-message"></div>
+          <div id="forgotPasswordSuccess" class="success-message"></div>
+
+          <button type="submit" class="btn-submit">Send Reset Link</button>
+          <button type="button" class="btn-back-form" onclick="showForm('login')">← Back to Login</button>
+        </form>
+      </div>
     </div>
 
     <!-- Reset Password Form -->
     <div class="auth-card form-screen" id="resetPasswordForm">
-      <div class="auth-header">
-        <h2 class="auth-title">Set New Password</h2>
-        <p class="auth-subtitle">Enter your reset token and new password</p>
+      <div class="card-band"></div>
+      <div class="card-body">
+        <div class="auth-header">
+          <h2 class="auth-title">Set New Password</h2>
+          <p class="auth-subtitle">Enter your reset token and choose a new password</p>
+        </div>
+
+        <form id="resetPasswordFormElement" onsubmit="handleResetPassword(event)">
+          <div class="form-group">
+            <label class="form-label">Reset Token</label>
+            <input type="text" id="resetToken" class="form-input" placeholder="Enter reset token" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="newPassword" class="form-input" placeholder="Enter new password" required style="padding-right: 2.5rem;" onkeyup="checkPasswordStrength()" />
+              <button type="button" class="password-toggle" id="newPasswordToggle"
+                onmousedown="togglePassword('newPassword', event)"
+                onmouseup="togglePassword('newPassword', event)"
+                onmouseleave="togglePassword('newPassword', {type: 'mouseup'})"
+                ontouchstart="togglePassword('newPassword', event)"
+                ontouchend="togglePassword('newPassword', event)">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+            <div class="password-strength-container" style="margin-top: 8px; display: none;" id="passwordStrengthContainer">
+              <div style="display: flex; gap: 4px; height: 4px; margin-bottom: 4px;">
+                <div id="strengthBar1" style="flex: 1; background: #e2e8f0; border-radius: 2px; transition: 0.3s background;"></div>
+                <div id="strengthBar2" style="flex: 1; background: #e2e8f0; border-radius: 2px; transition: 0.3s background;"></div>
+                <div id="strengthBar3" style="flex: 1; background: #e2e8f0; border-radius: 2px; transition: 0.3s background;"></div>
+                <div id="strengthBar4" style="flex: 1; background: #e2e8f0; border-radius: 2px; transition: 0.3s background;"></div>
+              </div>
+              <div id="strengthText" style="font-size: 0.75rem; color: var(--text-secondary); text-align: right; transition: 0.3s color; font-weight: 500;">Weak</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="confirmNewPassword" class="form-input" placeholder="Confirm new password" required style="padding-right: 2.5rem;" />
+              <button type="button" class="password-toggle" id="confirmNewPasswordToggle"
+                onmousedown="togglePassword('confirmNewPassword', event)"
+                onmouseup="togglePassword('confirmNewPassword', event)"
+                onmouseleave="togglePassword('confirmNewPassword', {type: 'mouseup'})"
+                ontouchstart="togglePassword('confirmNewPassword', event)"
+                ontouchend="togglePassword('confirmNewPassword', event)">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div id="resetPasswordError" class="error-message"></div>
+          <div id="resetPasswordSuccess" class="success-message"></div>
+
+          <button type="submit" class="btn-submit">Reset Password</button>
+          <button type="button" class="btn-back-form" onclick="showForm('login')">← Back to Login</button>
+        </form>
       </div>
-
-      <form id="resetPasswordFormElement" onsubmit="handleResetPassword(event)">
-        <div class="form-group">
-          <label class="form-label">Reset Token</label>
-          <input type="text" id="resetToken" class="form-input" placeholder="Enter reset token" required />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">New Password</label>
-          <div class="input-wrapper">
-            <input type="password" id="newPassword" class="form-input" placeholder="Enter new password" required />
-            <button type="button" class="password-toggle" id="newPasswordToggle"
-              onmousedown="togglePassword('newPassword', event)" 
-              onmouseup="togglePassword('newPassword', event)" 
-              onmouseleave="togglePassword('newPassword', {type: 'mouseup'})"
-              ontouchstart="togglePassword('newPassword', event)" 
-              ontouchend="togglePassword('newPassword', event)">👁️</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Confirm Password</label>
-          <div class="input-wrapper">
-            <input type="password" id="confirmNewPassword" class="form-input" placeholder="Confirm new password" required />
-            <button type="button" class="password-toggle" id="confirmNewPasswordToggle"
-              onmousedown="togglePassword('confirmNewPassword', event)" 
-              onmouseup="togglePassword('confirmNewPassword', event)" 
-              onmouseleave="togglePassword('confirmNewPassword', {type: 'mouseup'})"
-              ontouchstart="togglePassword('confirmNewPassword', event)" 
-              ontouchend="togglePassword('confirmNewPassword', event)">👁️</button>
-          </div>
-        </div>
-
-        <div id="resetPasswordError" class="error-message"></div>
-        <div id="resetPasswordSuccess" class="success-message"></div>
-        
-        <button type="submit" class="btn-submit">Reset Password</button>
-        <button type="button" class="btn-secondary" onclick="showForm('login')">← Back to Login</button>
-      </form>
     </div>
+
   </div>
 
   <script>
     function showForm(type) {
       document.getElementById('selectionScreen').style.display = 'none';
-      
-      document.getElementById('loginForm').classList.remove('active');
-      document.getElementById('forgotPasswordForm').classList.remove('active');
-      document.getElementById('resetPasswordForm').classList.remove('active');
-      
-      if (type === 'login') {
-        document.getElementById('loginForm').classList.add('active');
-      } else if (type === 'forgot-password') {
-        document.getElementById('forgotPasswordForm').classList.add('active');
-      } else if (type === 'reset-password') {
-        document.getElementById('resetPasswordForm').classList.add('active');
-      }
+      ['loginForm', 'forgotPasswordForm', 'resetPasswordForm'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      if (type === 'login') document.getElementById('loginForm').classList.add('active');
+      else if (type === 'forgot-password') document.getElementById('forgotPasswordForm').classList.add('active');
+      else if (type === 'reset-password') document.getElementById('resetPasswordForm').classList.add('active');
     }
 
-    function showForgotPassword() {
-      showForm('forgot-password');
-    }
+    function showForgotPassword() { showForm('forgot-password'); }
 
     function showSelection() {
       document.getElementById('selectionScreen').style.display = 'block';
-      document.getElementById('loginForm').classList.remove('active');
-      document.getElementById('forgotPasswordForm').classList.remove('active');
-      document.getElementById('resetPasswordForm').classList.remove('active');
+      ['loginForm', 'forgotPasswordForm', 'resetPasswordForm'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
     }
 
     function togglePassword(fieldId, e) {
-      const passwordField = document.getElementById(fieldId);
-      let toggleButtonId;
-      if (fieldId === 'loginPassword') {
-        toggleButtonId = 'loginPasswordToggle';
-      } else if (fieldId === 'newPassword') {
-        toggleButtonId = 'newPasswordToggle';
-      } else if (fieldId === 'confirmNewPassword') {
-        toggleButtonId = 'confirmNewPasswordToggle';
+      const field = document.getElementById(fieldId);
+      const toggleMap = {
+        loginPassword: 'loginPasswordToggle',
+        newPassword: 'newPasswordToggle',
+        confirmNewPassword: 'confirmNewPasswordToggle'
+      };
+      const btn = document.getElementById(toggleMap[fieldId]);
+      const type = (e || window.event).type;
+      if (type === 'mousedown' || type === 'touchstart') {
+        field.type = 'text'; btn.textContent = '🔒';
+      } else {
+        field.type = 'password'; btn.textContent = '👁';
       }
-      const toggleButton = document.getElementById(toggleButtonId);
-      const event = e || window.event;
-      const eventType = event.type;
+    }
+
+    function checkPasswordStrength() {
+      const pwd = document.getElementById('newPassword').value;
+      const container = document.getElementById('passwordStrengthContainer');
+      const b1 = document.getElementById('strengthBar1');
+      const b2 = document.getElementById('strengthBar2');
+      const b3 = document.getElementById('strengthBar3');
+      const b4 = document.getElementById('strengthBar4');
+      const txt = document.getElementById('strengthText');
+      if (!container) return;
       
-      if (eventType === 'mousedown' || eventType === 'touchstart') {
-        passwordField.type = 'text';
-        toggleButton.textContent = 'Hide';
-      } else if (eventType === 'mouseup' || eventType === 'touchend' || eventType === 'mouseleave') {
-        passwordField.type = 'password';
-        toggleButton.textContent = 'Show';
+      if (!pwd) {
+        container.style.display = 'none';
+        return;
       }
+      container.style.display = 'block';
+      
+      let strength = 0;
+      if (pwd.length >= 8) strength++;
+      if (/[A-Z]/.test(pwd) || /[a-z]/.test(pwd)) strength++;
+      if (/[0-9]/.test(pwd)) strength++;
+      if (/[^A-Za-z0-9]/.test(pwd)) strength++;
+      
+      const colors = ['#e2e8f0', '#ef4444', '#f59e0b', '#10b981', '#059669'];
+      const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+      const score = Math.min(strength, 4);
+      
+      b1.style.background = score >= 1 ? colors[score] : '#e2e8f0';
+      b2.style.background = score >= 2 ? colors[score] : '#e2e8f0';
+      b3.style.background = score >= 3 ? colors[score] : '#e2e8f0';
+      b4.style.background = score >= 4 ? colors[score] : '#e2e8f0';
+      
+      txt.textContent = labels[score];
+      txt.style.color = colors[score];
     }
 
     async function handleLogin(event) {
       event.preventDefault();
-      
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
-      const errorDiv = document.getElementById('loginError');
-      errorDiv.style.display = 'none';
-      errorDiv.textContent = '';
-
       try {
         const result = await window.auth.login(email, password);
-        
         if (result.success) {
           const sessionCheck = await window.auth.validateSession();
           if (sessionCheck.valid) {
-            if (result.user.userType === 'admin' || result.user.userType === 'teacher') {
-              window.navigateToAdminDashboard();
-            } else if (result.user.userType === 'student') {
-              window.navigateToStudentDashboard();
-            } else {
-              window.navigateToAdminDashboard();
-            }
+            showToast('Login successful! Redirecting...', 'success');
+            if (result.user.userType === 'admin') window.navigateToAdminDashboard();
+            else window.navigateToStudentDashboard();
           } else {
-            errorDiv.textContent = 'Session validation failed. Please try again.';
-            errorDiv.style.display = 'block';
+            showToast('Session validation failed. Please try again.', 'error');
           }
         } else {
-          errorDiv.textContent = result.error || 'Login failed. Please check your credentials.';
-          errorDiv.style.display = 'block';
+          showToast(result.error || 'Login failed. Please check your credentials.', 'error');
         }
-      } catch (error) {
-        errorDiv.textContent = 'An error occurred. Please try again.';
-        errorDiv.style.display = 'block';
-        console.error('Login error:', error);
+      } catch (err) {
+        showToast('An error occurred. Please try again.', 'error');
       }
     }
 
     async function handleForgotPassword(event) {
       event.preventDefault();
-      
       const email = document.getElementById('forgotEmail').value;
-      const errorDiv = document.getElementById('forgotPasswordError');
-      const successDiv = document.getElementById('forgotPasswordSuccess');
-      
-      errorDiv.style.display = 'none';
-      successDiv.style.display = 'none';
-      errorDiv.textContent = '';
-      successDiv.textContent = '';
-
-      if (!email) {
-        errorDiv.textContent = 'Please enter your email address.';
-        errorDiv.style.display = 'block';
-        return;
-      }
-
+      if (!email) { showToast('Please enter your email.', 'error'); return; }
       try {
         const result = await window.auth.requestPasswordReset(email);
-        
         if (result.success) {
-          successDiv.textContent = result.message || 'Password reset token generated successfully!';
-          if (result.token) {
-            successDiv.innerHTML = `${result.message}<br><br><strong>Development Token:</strong><br><code style="background: rgba(15, 23, 42, 0.8); padding: 0.5rem; border-radius: 8px; font-size: 0.85rem; word-break: break-all; display: block; margin-top: 0.5rem;">${result.token}</code><br><br><small>In production, this would be sent via email.</small>`;
-          }
-          successDiv.style.display = 'block';
-          
-          setTimeout(() => {
-            showForm('reset-password');
-            if (result.token) {
-              document.getElementById('resetToken').value = result.token;
-            }
-          }, 2000);
+          showToast(result.message || 'Reset link sent!', 'success');
+          setTimeout(() => { showForm('reset-password'); if (result.token) document.getElementById('resetToken').value = result.token; }, 2000);
         } else {
-          errorDiv.textContent = result.error || 'Failed to send reset link. Please try again.';
-          errorDiv.style.display = 'block';
+          showToast(result.error || 'Failed to send reset link.', 'error');
         }
-      } catch (error) {
-        errorDiv.textContent = 'An error occurred. Please try again.';
-        errorDiv.style.display = 'block';
-        console.error('Forgot password error:', error);
+      } catch (err) {
+        showToast('An error occurred.', 'error');
       }
     }
 
     async function handleResetPassword(event) {
       event.preventDefault();
-      
       const token = document.getElementById('resetToken').value;
       const newPassword = document.getElementById('newPassword').value;
       const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-      const errorDiv = document.getElementById('resetPasswordError');
-      const successDiv = document.getElementById('resetPasswordSuccess');
-      
-      errorDiv.style.display = 'none';
-      successDiv.style.display = 'none';
-      errorDiv.textContent = '';
-      successDiv.textContent = '';
-
-      if (!token) {
-        errorDiv.textContent = 'Please enter the reset token.';
-        errorDiv.style.display = 'block';
-        return;
+      if (!token) { showToast('Please enter the reset token.', 'error'); return; }
+      if (!newPassword) { showToast('Please enter a new password.', 'error'); return; }
+      if (newPassword !== confirmNewPassword) { showToast('Passwords do not match.', 'error'); return; }
+      if (newPassword.length < 8) { showToast('Password must be at least 8 characters.', 'error'); return; }
+      if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+        showToast('Password must contain uppercase, lowercase, and a number.', 'error'); return;
       }
-
-      if (!newPassword) {
-        errorDiv.textContent = 'Please enter a new password.';
-        errorDiv.style.display = 'block';
-        return;
-      }
-
-      if (newPassword !== confirmNewPassword) {
-        errorDiv.textContent = 'Passwords do not match.';
-        errorDiv.style.display = 'block';
-        return;
-      }
-
-      if (newPassword.length < 8) {
-        errorDiv.textContent = 'Password must be at least 8 characters long.';
-        errorDiv.style.display = 'block';
-        return;
-      }
-
-      const hasUpperCase = /[A-Z]/.test(newPassword);
-      const hasLowerCase = /[a-z]/.test(newPassword);
-      const hasNumber = /[0-9]/.test(newPassword);
-
-      if (!hasUpperCase || !hasLowerCase || !hasNumber) {
-        errorDiv.textContent = 'Password must contain at least one uppercase letter, one lowercase letter, and one number.';
-        errorDiv.style.display = 'block';
-        return;
-      }
-
       try {
         const result = await window.auth.resetPassword(token, newPassword);
-        
         if (result.success) {
-          successDiv.textContent = result.message || 'Password reset successfully! Redirecting to login...';
-          successDiv.style.display = 'block';
-          
-          setTimeout(() => {
-            showForm('login');
-            document.getElementById('resetPasswordFormElement').reset();
-            document.getElementById('forgotPasswordFormElement').reset();
-          }, 2000);
+          showToast(result.message || 'Password reset! Redirecting...', 'success');
+          setTimeout(() => { showForm('login'); document.getElementById('resetPasswordFormElement').reset(); document.getElementById('forgotPasswordFormElement').reset(); }, 2000);
         } else {
-          errorDiv.textContent = result.error || 'Failed to reset password. Please try again.';
-          errorDiv.style.display = 'block';
+          showToast(result.error || 'Failed to reset password.', 'error');
         }
-      } catch (error) {
-        errorDiv.textContent = 'An error occurred. Please try again.';
-        errorDiv.style.display = 'block';
-        console.error('Reset password error:', error);
+      } catch (err) {
+        showToast('An error occurred.', 'error');
       }
     }
+
+    // --- Toast Notification System ---
+    function showToast(message, type = 'error') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      // Select appropriate icon and color based on type
+      const icon = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '❌';
+      const bgColor = type === 'success' ? 'var(--success)' : type === 'warning' ? 'var(--warning)' : '#ef4444';
+      
+      toast.className = 'toast';
+      toast.style.cssText = `
+        background: white;
+        color: var(--text-primary);
+        padding: 14px 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-left: 4px solid ${bgColor};
+        animation: slideInToast 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        margin-top: 10px;
+      `;
+      
+      toast.innerHTML = `<span style="font-size: 1.2rem;">${icon}</span><span>${message}</span>`;
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'fadeOutToast 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
   </script>
-  <script src="render.js"></script>
+
+  <style>
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    @keyframes slideInToast {
+      from { transform: translateX(100%) scale(0.9); opacity: 0; }
+      to { transform: translateX(0) scale(1); opacity: 1; }
+    }
+    @keyframes fadeOutToast {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(20px); opacity: 0; }
+    }
+  </style>
+  <div id="toast-container"></div>
 </body>
 </html>

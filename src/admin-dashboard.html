@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,6 +8,21 @@
   <title>Mathify — Admin/Teacher Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --accent: #ec4899;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --bg: #f8f9ff;
+      --surface: #ffffff;
+      --text-primary: #1e1b4b;
+      --text-secondary: #64748b;
+      --border: rgba(99, 102, 241, 0.15);
+      --shadow-sm: 0 2px 8px rgba(99, 102, 241, 0.08);
+      --shadow-md: 0 8px 24px rgba(99, 102, 241, 0.12);
+    }
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
     * {
@@ -16,8 +32,8 @@
     body {
       margin: 0;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #0f172a;
-      color: #f1f5f9;
+      background: var(--bg);
+      color: var(--text-primary);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -27,9 +43,9 @@
     .admin-header {
       position: relative;
       z-index: 10;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #020617 100%);
-      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
       backdrop-filter: blur(12px);
     }
 
@@ -141,12 +157,12 @@
     /* Navigation Sidebar */
     .sidebar {
       width: 280px;
-      background: #1e293b;
-      border-right: 1px solid rgba(148, 163, 184, 0.1);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
       padding: 0;
       overflow-y: auto;
       overflow-x: hidden;
-      box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+      box-shadow: var(--shadow-sm);
       position: sticky;
       top: 0;
       height: 100vh;
@@ -161,7 +177,7 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      color: #cbd5e1;
+      color: var(--text-secondary);
       font-size: 15px;
       font-weight: 500;
       position: relative;
@@ -182,7 +198,7 @@
 
     .nav-item:hover {
       background: rgba(99, 102, 241, 0.1);
-      color: #f1f5f9;
+      color: var(--text-primary);
     }
 
     .nav-item.active {
@@ -214,7 +230,7 @@
     .content-area {
       flex: 1;
       padding: 32px;
-      background: #0f172a;
+      background: var(--bg);
       position: relative;
       overflow: hidden;
     }
@@ -223,9 +239,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: 
-        radial-gradient(at 20% 30%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-        radial-gradient(at 80% 70%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+      background: transparent;
       pointer-events: none;
       z-index: 0;
     }
@@ -240,8 +254,15 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .container {
@@ -251,12 +272,12 @@
 
     /* Child Profile Selector */
     .child-selector {
-      background: rgba(30, 41, 59, 0.6);
+      background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
       padding: 24px;
       border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      border: 1px solid rgba(148, 163, 184, 0.1);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
       margin-bottom: 30px;
       display: flex;
       align-items: center;
@@ -275,22 +296,22 @@
 
     .child-selector select {
       padding: 12px 16px;
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 15px;
       font-family: 'Inter', sans-serif;
       cursor: pointer;
       flex: 1;
       min-width: 200px;
-      background: rgba(15, 23, 42, 0.5);
-      color: #f1f5f9;
+      background: var(--surface);
+      color: var(--text-primary);
       transition: all 0.3s;
     }
 
     .child-selector select:focus {
       outline: none;
       border-color: #6366f1;
-      background: rgba(15, 23, 42, 0.7);
+      background: var(--surface);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
     }
 
@@ -324,11 +345,11 @@
 
     /* Reusable admin/teacher table + toolbar styles */
     .table-card {
-      background: rgba(30, 41, 59, 0.6);
+      background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
       border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      border: 1px solid rgba(148, 163, 184, 0.1);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
       margin-bottom: 24px;
       overflow: hidden;
       position: relative;
@@ -337,19 +358,19 @@
 
     .table-header {
       padding: 20px 28px;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 16px;
       flex-wrap: wrap;
-      background: rgba(15, 23, 42, 0.3);
+      background: rgba(248, 249, 255, 0.8);
     }
 
     .table-header-title {
       font-size: 20px;
       font-weight: 700;
-      color: #f1f5f9;
+      color: var(--text-primary);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -358,7 +379,7 @@
 
     .table-header-subtitle {
       font-size: 14px;
-      color: #94a3b8;
+      color: var(--text-secondary);
       font-weight: 500;
     }
 
@@ -384,9 +405,9 @@
     .search-input {
       padding: 10px 16px;
       border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.5);
-      color: #f1f5f9;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
       font-family: 'Inter', sans-serif;
       font-size: 14px;
       min-width: 200px;
@@ -394,13 +415,13 @@
     }
 
     .search-input::placeholder {
-      color: #64748b;
+      color: var(--text-secondary);
     }
 
     .search-input:focus {
       outline: none;
       border-color: #6366f1;
-      background: rgba(15, 23, 42, 0.7);
+      background: var(--surface);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
     }
 
@@ -411,20 +432,20 @@
     }
 
     .admin-table thead {
-      background: rgba(15, 23, 42, 0.5);
+      background: var(--surface);
     }
 
     .admin-table th,
     .admin-table td {
       padding: 16px 24px;
       text-align: left;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      border-bottom: 1px solid var(--border);
       white-space: nowrap;
     }
 
     .admin-table th {
       font-weight: 600;
-      color: #cbd5e1;
+      color: var(--text-secondary);
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -432,7 +453,7 @@
     }
 
     .admin-table td {
-      color: #e2e8f0;
+      color: var(--text-primary);
     }
 
     .admin-table tbody tr:hover {
@@ -473,7 +494,7 @@
 
     .status-pill.muted {
       background: rgba(148, 163, 184, 0.2);
-      color: #94a3b8;
+      color: var(--text-secondary);
       border: 1px solid rgba(148, 163, 184, 0.3);
     }
 
@@ -487,7 +508,7 @@
       background: #2f855a;
       color: white;
       font-size: 14px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+      box-shadow: var(--shadow-md);
       display: none;
       align-items: center;
       gap: 8px;
@@ -504,10 +525,25 @@
     }
 
     @keyframes fadeInOut {
-      0% { opacity: 0; transform: translateY(10px); }
-      10% { opacity: 1; transform: translateY(0); }
-      90% { opacity: 1; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(10px); }
+      0% {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      10% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      90% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(10px);
+      }
     }
 
     .add-child-btn:active {
@@ -537,12 +573,12 @@
     }
 
     .card {
-      background: rgba(30, 41, 59, 0.6);
+      background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
       padding: 28px;
       border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      border: 1px solid rgba(148, 163, 184, 0.1);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
       transition: all 0.3s;
       position: relative;
       z-index: 1;
@@ -550,13 +586,13 @@
 
     .card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
       border-color: rgba(99, 102, 241, 0.3);
     }
 
     .card h3 {
       margin: 0 0 20px 0;
-      color: #f1f5f9;
+      color: var(--text-primary);
       font-size: 22px;
       font-weight: 700;
       display: flex;
@@ -584,14 +620,14 @@
     .stat-item {
       text-align: center;
       padding: 20px;
-      background: rgba(30, 41, 59, 0.8);
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.1);
+      border: 1px solid var(--border);
       transition: all 0.3s;
     }
 
     .stat-item:hover {
-      background: rgba(30, 41, 59, 1);
+      background: var(--surface);
       border-color: rgba(99, 102, 241, 0.3);
       transform: translateY(-2px);
     }
@@ -606,7 +642,7 @@
 
     .stat-label {
       font-size: 13px;
-      color: #94a3b8;
+      color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       font-weight: 500;
@@ -632,7 +668,7 @@
     }
 
     .ai-summary-content {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       padding: 20px;
       border-radius: 10px;
       line-height: 1.6;
@@ -641,7 +677,7 @@
     .ai-summary-item {
       margin-bottom: 20px;
       padding-bottom: 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .ai-summary-item:last-child {
@@ -712,19 +748,19 @@
     .alert-title {
       font-weight: 600;
       margin-bottom: 6px;
-      color: #f1f5f9;
+      color: var(--text-primary);
       font-family: 'Inter', sans-serif;
     }
 
     .alert-message {
       font-size: 14px;
-      color: #cbd5e1;
+      color: var(--text-secondary);
       line-height: 1.5;
     }
 
     .alert-time {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--text-secondary);
       margin-top: 6px;
     }
 
@@ -882,14 +918,14 @@
 
     .activity-card .activity-title {
       font-weight: 600;
-      color: #f1f5f9;
+      color: var(--text-primary);
       margin-bottom: 8px;
       font-family: 'Inter', sans-serif;
     }
 
     .activity-description {
       font-size: 14px;
-      color: #cbd5e1;
+      color: var(--text-secondary);
       margin-bottom: 12px;
       line-height: 1.5;
     }
@@ -917,7 +953,7 @@
     /* Parent Tips */
     .tip-item {
       padding: 18px;
-      background: rgba(30, 41, 59, 0.6);
+      background: rgba(255, 255, 255, 0.9);
       border-radius: 12px;
       margin-bottom: 12px;
       border-left: 3px solid #34d399;
@@ -926,13 +962,13 @@
     }
 
     .tip-item:hover {
-      background: rgba(30, 41, 59, 0.8);
+      background: rgba(255, 255, 255, 0.95);
       transform: translateX(4px);
     }
 
     .tip-title {
       font-weight: 600;
-      color: #f1f5f9;
+      color: var(--text-primary);
       margin-bottom: 8px;
       display: flex;
       align-items: center;
@@ -942,7 +978,7 @@
 
     .tip-content {
       font-size: 14px;
-      color: #cbd5e1;
+      color: var(--text-secondary);
       line-height: 1.6;
     }
 
@@ -951,7 +987,7 @@
       padding: 20px;
       background: white;
       border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       margin-bottom: 20px;
       display: flex;
       justify-content: space-between;
@@ -978,15 +1014,15 @@
     }
 
     .modal {
-      background: #1e293b;
+      background: var(--surface);
       border-radius: 20px;
       padding: 35px;
       max-width: 600px;
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border);
       position: relative;
       animation: modalSlideIn 0.3s ease-out;
     }
@@ -996,6 +1032,7 @@
         opacity: 0;
         transform: translateY(-20px) scale(0.95);
       }
+
       to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -1031,7 +1068,7 @@
 
     .modal-header h3 {
       margin: 0;
-      color: #f1f5f9;
+      color: var(--text-primary);
       font-size: 26px;
       font-weight: 700;
       font-family: 'Inter', sans-serif;
@@ -1042,7 +1079,7 @@
       border: none;
       font-size: 28px;
       cursor: pointer;
-      color: #94a3b8;
+      color: var(--text-secondary);
       padding: 0;
       width: 32px;
       height: 32px;
@@ -1067,24 +1104,24 @@
     .modal-form input,
     .modal-form select {
       padding: 14px 16px;
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 16px;
       font-family: 'Inter', sans-serif;
       transition: all 0.3s;
-      background: rgba(15, 23, 42, 0.5);
-      color: #f1f5f9;
+      background: var(--surface);
+      color: var(--text-primary);
     }
 
     .modal-form input::placeholder {
-      color: #64748b;
+      color: var(--text-secondary);
     }
 
     .modal-form input:focus,
     .modal-form select:focus {
       outline: none;
       border-color: #6366f1;
-      background: rgba(15, 23, 42, 0.7);
+      background: var(--surface);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
     }
 
@@ -1163,16 +1200,16 @@
     }
 
     .modal-btn-secondary {
-      background: rgba(15, 23, 42, 0.5);
-      color: #cbd5e1;
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
       font-family: 'Inter', sans-serif;
     }
 
     .modal-btn-secondary:hover {
-      background: rgba(15, 23, 42, 0.7);
+      background: var(--surface);
       border-color: rgba(148, 163, 184, 0.4);
-      color: #f1f5f9;
+      color: var(--text-primary);
     }
 
     .profile-info {
@@ -1223,7 +1260,8 @@
     /* Responsive */
     @media (max-width: 768px) {
       body {
-        padding-top: 70px; /* Smaller padding for mobile */
+        padding-top: 70px;
+        /* Smaller padding for mobile */
       }
 
       .main-container {
@@ -1249,14 +1287,16 @@
         border-bottom-color: #5a67d8;
       }
 
-      .grid, .grid-2, .grid-3 {
+      .grid,
+      .grid-2,
+      .grid-3 {
         grid-template-columns: 1fr;
       }
-      
+
       .header {
         padding: 12px 20px;
       }
-      
+
       .content-area {
         padding: 20px;
       }
@@ -1270,13 +1310,14 @@
         overflow-x: auto;
         padding: 10px 0;
         border-right: none;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        border-bottom: 1px solid var(--border);
       }
 
       .content-area::before {
         left: 0;
       }
     }
+
     /* Math Rain Animation */
     .math-rain {
       position: fixed;
@@ -1292,40 +1333,127 @@
       font-size: clamp(2rem, 4vw, 3rem);
       color: rgba(90, 103, 216, 0.15);
       animation: fall 12s linear infinite;
-      text-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       opacity: 0;
-      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.15));
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.15));
     }
 
-    .math-rain span:nth-child(odd) { animation-duration: 11s; }
-    .math-rain span:nth-child(even) { animation-duration: 16s; }
-    .math-rain span:nth-child(1) { left: 2%; animation-delay: -1s; }
-    .math-rain span:nth-child(2) { left: 8%; animation-delay: -6s; }
-    .math-rain span:nth-child(3) { left: 14%; animation-delay: -2s; }
-    .math-rain span:nth-child(4) { left: 20%; animation-delay: -7s; }
-    .math-rain span:nth-child(5) { left: 28%; animation-delay: -3s; }
-    .math-rain span:nth-child(6) { left: 34%; animation-delay: -8s; }
-    .math-rain span:nth-child(7) { left: 40%; animation-delay: -4s; }
-    .math-rain span:nth-child(8) { left: 46%; animation-delay: -9s; }
-    .math-rain span:nth-child(9) { left: 52%; animation-delay: -5s; }
-    .math-rain span:nth-child(10) { left: 58%; animation-delay: -10s; }
-    .math-rain span:nth-child(11) { left: 64%; animation-delay: -6s; }
-    .math-rain span:nth-child(12) { left: 70%; animation-delay: -11s; }
-    .math-rain span:nth-child(13) { left: 76%; animation-delay: -7s; }
-    .math-rain span:nth-child(14) { left: 82%; animation-delay: -12s; }
-    .math-rain span:nth-child(15) { left: 88%; animation-delay: -8s; }
-    .math-rain span:nth-child(16) { left: 94%; animation-delay: -13s; }
+    .math-rain span:nth-child(odd) {
+      animation-duration: 11s;
+    }
+
+    .math-rain span:nth-child(even) {
+      animation-duration: 16s;
+    }
+
+    .math-rain span:nth-child(1) {
+      left: 2%;
+      animation-delay: -1s;
+    }
+
+    .math-rain span:nth-child(2) {
+      left: 8%;
+      animation-delay: -6s;
+    }
+
+    .math-rain span:nth-child(3) {
+      left: 14%;
+      animation-delay: -2s;
+    }
+
+    .math-rain span:nth-child(4) {
+      left: 20%;
+      animation-delay: -7s;
+    }
+
+    .math-rain span:nth-child(5) {
+      left: 28%;
+      animation-delay: -3s;
+    }
+
+    .math-rain span:nth-child(6) {
+      left: 34%;
+      animation-delay: -8s;
+    }
+
+    .math-rain span:nth-child(7) {
+      left: 40%;
+      animation-delay: -4s;
+    }
+
+    .math-rain span:nth-child(8) {
+      left: 46%;
+      animation-delay: -9s;
+    }
+
+    .math-rain span:nth-child(9) {
+      left: 52%;
+      animation-delay: -5s;
+    }
+
+    .math-rain span:nth-child(10) {
+      left: 58%;
+      animation-delay: -10s;
+    }
+
+    .math-rain span:nth-child(11) {
+      left: 64%;
+      animation-delay: -6s;
+    }
+
+    .math-rain span:nth-child(12) {
+      left: 70%;
+      animation-delay: -11s;
+    }
+
+    .math-rain span:nth-child(13) {
+      left: 76%;
+      animation-delay: -7s;
+    }
+
+    .math-rain span:nth-child(14) {
+      left: 82%;
+      animation-delay: -12s;
+    }
+
+    .math-rain span:nth-child(15) {
+      left: 88%;
+      animation-delay: -8s;
+    }
+
+    .math-rain span:nth-child(16) {
+      left: 94%;
+      animation-delay: -13s;
+    }
 
     @keyframes fall {
-      0% { transform: translate3d(0, -150vh, 0); opacity: 0; }
-      8% { opacity: 1; }
-      85% { opacity: 1; }
-      92% { transform: translate3d(-24px, 80vh, 0); opacity: 1; }
-      100% { transform: translate3d(-40px, 140vh, 0); opacity: 0; }
-    }
+      0% {
+        transform: translate3d(0, -150vh, 0);
+        opacity: 0;
+      }
 
+      8% {
+        opacity: 1;
+      }
+
+      85% {
+        opacity: 1;
+      }
+
+      92% {
+        transform: translate3d(-24px, 80vh, 0);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate3d(-40px, 140vh, 0);
+        opacity: 0;
+      }
+    }
   </style>
+  <script src="api.js"></script>
 </head>
+
 <body>
 
   <!-- Math Rain Animation -->
@@ -1406,22 +1534,7 @@
         </svg>
         <span>Students</span>
       </div>
-      <div class="nav-item" onclick="showPage('page6')">
-        <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 14l9-5-9-5-9 5 9 5z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 14l6.16-3.422A12.083 12.083 0 0118 20.25 48.108 48.108 0 0012 18.5a48.108 48.108 0 00-6 1.75A12.083 12.083 0 015.84 10.578L12 14z" />
-        </svg>
-        <span>Teachers</span>
-      </div>
-      <div class="nav-item" onclick="showPage('page7')">
-        <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 19.5A2.5 2.5 0 016.5 17H20M4 4.5A2.5 2.5 0 016.5 7H20M6.5 7A2.5 2.5 0 014 9.5v9A2.5 2.5 0 016.5 21H20V7H6.5z" />
-        </svg>
-        <span>Teacher Resources</span>
-      </div>
+
       <div class="nav-item" onclick="showPage('page8')">
         <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1433,6 +1546,29 @@
 
     <!-- Content Area -->
     <div class="content-area">
+      <!-- Global Student Selector -->
+      <div class="child-selector" style="margin: 20px 20px 0; max-width: 1400px; padding: 15px 24px;">
+        <div style="display: flex; gap: 15px; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+            <select id="gradeFilterTop" onchange="loadStudents()">
+              <option value="">All Grades</option>
+              <option value="1">Grade 1</option>
+              <option value="2">Grade 2</option>
+              <option value="3">Grade 3</option>
+              <option value="4">Grade 4</option>
+              <option value="5">Grade 5</option>
+              <option value="6">Grade 6</option>
+            </select>
+            <select id="childSelect" onchange="loadChildData(this.value)" style="flex: 1; max-width: 400px;">
+              <option value="">-- Select a student --</option>
+            </select>
+          </div>
+          <button id="topCreateStudentBtn" class="add-child-btn" onclick="showPage('page5'); showAddStudentModal()">
+            ➕ New Student
+          </button>
+        </div>
+      </div>
+
       <!-- Page 1: Home / Overview -->
       <div id="page1" class="page active">
         <div class="container">
@@ -1441,7 +1577,7 @@
           <div class="card">
             <h3>📊 Student Overview</h3>
             <div id="studentOverview">
-              <p style="color: #94a3b8; text-align: center; padding: 40px;">
+              <p style="color: var(--text-secondary); text-align: center; padding: 40px;">
                 Please select a student to view their progress.
               </p>
             </div>
@@ -1461,7 +1597,7 @@
           <div class="card">
             <h3>🔔 Alerts and Notifications</h3>
             <div id="alertsContainer">
-              <p style="color: #94a3b8; text-align: center; padding: 20px;">
+              <p style="color: var(--text-secondary); text-align: center; padding: 20px;">
                 No alerts at this time. Select a student to view their notifications.
               </p>
             </div>
@@ -1511,7 +1647,8 @@
           <div class="card">
             <h3>📋 Curriculum Alignment</h3>
             <div id="curriculumContainer">
-              <p style="color: #666; text-align: center; padding: 40px;">Select a student to view their curriculum progress.</p>
+              <p style="color: #666; text-align: center; padding: 40px;">Select a student to view their curriculum
+                progress.</p>
             </div>
           </div>
 
@@ -1520,13 +1657,15 @@
             <div class="card">
               <h3>🔧 Remedial Activities</h3>
               <div id="remedialContainer">
-                <p style="color: #666; text-align: center; padding: 20px;">Select a student to view recommended remedial activities.</p>
+                <p style="color: #666; text-align: center; padding: 20px;">Select a student to view recommended remedial
+                  activities.</p>
               </div>
             </div>
             <div class="card">
               <h3>💡 Suggested Activities</h3>
               <div id="suggestedContainer">
-                <p style="color: #666; text-align: center; padding: 20px;">Select a student to view suggested activities.</p>
+                <p style="color: #666; text-align: center; padding: 20px;">Select a student to view suggested
+                  activities.</p>
               </div>
             </div>
           </div>
@@ -1540,7 +1679,8 @@
           <div class="card">
             <h3>🏆 Rewards and Gamification</h3>
             <div id="rewardsDisplay">
-              <p style="color: #666; text-align: center; padding: 40px;">Select a student to view their rewards and achievements.</p>
+              <p style="color: #666; text-align: center; padding: 40px;">Select a student to view their rewards and
+                achievements.</p>
             </div>
           </div>
         </div>
@@ -1558,7 +1698,8 @@
               </div>
               <div class="table-toolbar">
                 <span class="pill-badge" id="roleBadge">Role: Admin</span>
-                <select id="gradeFilterPage5" onchange="loadStudents()" style="padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.2); font-family: 'Inter', sans-serif; font-size: 14px; min-width: 150px; background: rgba(15, 23, 42, 0.5); color: #f1f5f9;">
+                <select id="gradeFilterPage5" onchange="loadStudents()"
+                  style="padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); font-family: 'Inter', sans-serif; font-size: 14px; min-width: 150px; background: var(--surface); color: var(--text-primary);">
                   <option value="">All Grades</option>
                   <option value="1">Grade 1</option>
                   <option value="2">Grade 2</option>
@@ -1566,12 +1707,13 @@
                   <option value="4">Grade 4</option>
                   <option value="5">Grade 5</option>
                   <option value="6">Grade 6</option>
-              </select>
-                <input id="studentSearch" class="search-input" type="text" placeholder="Search by name or email" oninput="loadStudents()" />
+                </select>
+                <input id="studentSearch" class="search-input" type="text" placeholder="Search by name or email"
+                  oninput="loadStudents()" />
                 <button id="createStudentAccountBtn" class="add-child-btn" onclick="showAddStudentModal()">
                   ➕ Create Account
                 </button>
-            </div>
+              </div>
             </div>
             <div style="padding: 0 0 4px 0; overflow-x: auto;">
               <table class="admin-table" id="studentsTable">
@@ -1588,231 +1730,52 @@
                   <!-- Student profiles will be rendered here -->
                 </tbody>
               </table>
-              <div id="studentsEmptyState" style="padding: 20px; text-align: center; color: #94a3b8; display: none;">
+              <div id="studentsEmptyState" style="padding: 20px; text-align: center; color: var(--text-secondary); display: none;">
                 No students found for this view.
               </div>
             </div>
-
-            <!-- Add Student Account Modal -->
-            <div id="addStudentModal" class="modal-overlay">
-              <div class="modal">
-                <div class="modal-header">
-                  <h3>Create New Student Account</h3>
-                  <button class="modal-close" onclick="closeAddStudentModal()">&times;</button>
-                </div>
-                <form class="modal-form" onsubmit="handleAddAccount(event)">
-                  <input type="text" id="modalStudentName" placeholder="Full Name" required />
-                  <input type="email" id="modalStudentEmail" placeholder="Email" required />
-                  <div class="password-wrapper">
-                    <input type="password" id="modalStudentPassword" placeholder="Password" required />
-                    <button type="button" class="password-toggle" onclick="toggleModalPassword('modalStudentPassword')">
-                      <span class="icon-eye"></span>
-                    </button>
-                  </div>
-                  <div id="modalGradeWrapper">
-                    <select id="modalStudentGrade">
-                    <option value="">Select Grade</option>
-                    <option value="1">Grade 1</option>
-                    <option value="2">Grade 2</option>
-                    <option value="3">Grade 3</option>
-                    <option value="4">Grade 4</option>
-                    <option value="5">Grade 5</option>
-                    <option value="6">Grade 6</option>
-                  </select>
-                  </div>
-                  <div id="modalError" class="modal-error"></div>
-                  <div class="modal-actions">
-                    <button type="button" class="modal-btn modal-btn-secondary" onclick="closeAddStudentModal()">Cancel</button>
-                    <button type="submit" class="modal-btn modal-btn-primary">Create Account</button>
-                  </div>
-                </form>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- Page 6: Teachers -->
-      <div id="page6" class="page">
-        <div class="container">
-          <div class="table-card">
-                <div class="table-header">
-              <div>
-                <div class="table-header-title">Teacher Accounts</div>
-                <div class="table-header-subtitle">Manage all teacher accounts and their grade assignments.</div>
-              </div>
-              <div class="table-toolbar">
-                <label style="font-weight: 600; color: #6366f1; font-size: 14px; font-family: 'Inter', sans-serif;">
-                  📚 Grade taught:
-                  <select id="teacherGradeFilter" onchange="loadTeachers()" style="margin-left: 6px; padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.2); font-family: 'Inter', sans-serif; font-size: 14px; background: rgba(15, 23, 42, 0.5); color: #f1f5f9;">
-                    <option value="">All Grades</option>
-                    <option value="1">Grade 1</option>
-                    <option value="2">Grade 2</option>
-                    <option value="3">Grade 3</option>
-                    <option value="4">Grade 4</option>
-                    <option value="5">Grade 5</option>
-                    <option value="6">Grade 6</option>
-                  </select>
-                </label>
-                <button class="add-child-btn" onclick="showAddTeacherModal()">
-                  ➕ Create Teacher Account
-                </button>
-              </div>
-            </div>
 
-            <div style="padding: 0 0 4px 0; overflow-x: auto;">
-              <table class="admin-table" id="teachersTable">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Grades Taught</th>
-                    <th>Created</th>
-                  </tr>
-                </thead>
-                <tbody id="teachersList">
-                  <!-- Teacher accounts will be loaded here -->
-                </tbody>
-              </table>
-              <div id="teachersEmptyState" style="padding: 20px; text-align: center; color: #94a3b8; display: none;">
-                No teachers found for this filter.
-              </div>
-            </div>
-
-            <!-- Add Teacher Account Modal -->
-            <div id="addTeacherModal" class="modal-overlay">
-              <div class="modal">
-                <div class="modal-header">
-                  <h3>Create New Teacher Account</h3>
-                  <button class="modal-close" onclick="closeAddTeacherModal()">&times;</button>
-                </div>
-                <form class="modal-form" onsubmit="handleAddTeacherAccount(event)">
-                  <input type="text" id="modalTeacherName" placeholder="Full Name" required />
-                  <input type="email" id="modalTeacherEmail" placeholder="Email" required />
-                  <div class="password-wrapper">
-                    <input type="password" id="modalTeacherPassword" placeholder="Password" required />
-                    <button type="button" class="password-toggle" onclick="toggleModalPassword('modalTeacherPassword')">
-                      <span class="icon-eye"></span>
-                    </button>
-                  </div>
-                  <div id="modalTeacherGradesWrapper">
-                    <label style="font-weight: 600; color: #cbd5e1; margin-bottom: 8px; display: block; font-family: 'Inter', sans-serif;">Grade Levels Taught (select one or more)</label>
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                      <label style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" class="teacher-grade-checkbox" value="1" /> Grade 1
-                      </label>
-                      <label style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" class="teacher-grade-checkbox" value="2" /> Grade 2
-                      </label>
-                      <label style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" class="teacher-grade-checkbox" value="3" /> Grade 3
-                      </label>
-                      <label style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" class="teacher-grade-checkbox" value="4" /> Grade 4
-                      </label>
-                      <label style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" class="teacher-grade-checkbox" value="5" /> Grade 5
-                      </label>
-                      <label style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" class="teacher-grade-checkbox" value="6" /> Grade 6
-                      </label>
-                    </div>
-                  </div>
-                  <div id="teacherModalError" class="modal-error"></div>
-                  <div class="modal-actions">
-                    <button type="button" class="modal-btn modal-btn-secondary" onclick="closeAddTeacherModal()">Cancel</button>
-                    <button type="submit" class="modal-btn modal-btn-primary">Create Teacher</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Page 7: Teacher Resources -->
-      <div id="page7" class="page">
-        <div class="container">
-          <!-- Teaching Tips Section -->
-          <div class="card">
-            <h3>💬 Teaching Tips & Resources</h3>
-            <div id="tipsContainer">
-              <div class="tip-item">
-                <div class="tip-title">
-                  <span>💡</span>
-                  <span>Encourage Daily Practice</span>
-                </div>
-                <div class="tip-content">
-                  Consistent daily practice, even for just 15-20 minutes, helps reinforce learning and build confidence. Set a regular time each day for math practice.
-                </div>
-              </div>
-              <div class="tip-item">
-                <div class="tip-title">
-                  <span>🎯</span>
-                  <span>Celebrate Small Wins</span>
-                </div>
-                <div class="tip-content">
-                  Acknowledge progress and effort, not just perfect scores. Celebrating improvement motivates students to keep learning and trying their best.
-                </div>
-              </div>
-              <div class="tip-item">
-                <div class="tip-title">
-                  <span>📚</span>
-                  <span>Connect Math to Real Life</span>
-                </div>
-                <div class="tip-content">
-                  Help students see math in everyday activities like cooking, shopping, or measuring. This makes math more relevant and interesting.
-                </div>
-              </div>
-              <div class="tip-item">
-                <div class="tip-title">
-                  <span>⏰</span>
-                  <span>Create a Learning Routine</span>
-                </div>
-                <div class="tip-content">
-                  Establish a consistent study routine. Students thrive with structure, and a regular schedule helps them develop good study habits.
-                </div>
-              </div>
-              <div class="tip-item">
-                <div class="tip-title">
-                  <span>🤝</span>
-                  <span>Be Patient and Supportive</span>
-                </div>
-                <div class="tip-content">
-                  Learning math can be challenging. Be patient when students struggle, and offer encouragement. Focus on effort and progress rather than perfection.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Page 8: Dashboard Guide -->
       <div id="page8" class="page">
         <div class="container">
           <div class="card">
             <h3>❓ How to Use This Dashboard</h3>
-            <div style="text-align: center; padding: 40px 30px; background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 12px; border: 2px dashed #cbd5e0;">
+            <div
+              style="text-align: center; padding: 40px 30px; background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 12px; border: 2px dashed #cbd5e0;">
               <div style="font-size: 64px; margin-bottom: 20px;">👥</div>
-              <h3 style="color: #2d3748; font-size: 24px; margin-bottom: 12px; font-weight: 600;">Welcome to Mathify Dashboard</h3>
-              <p style="color: #718096; font-size: 16px; margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">
-                Use this page as a quick guide for admins and teachers on how to manage accounts, filter students by grade, and read the analytics.
+              <h3 style="color: #2d3748; font-size: 24px; margin-bottom: 12px; font-weight: 600;">Welcome to Mathify
+                Dashboard</h3>
+              <p
+                style="color: #718096; font-size: 16px; margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Use this page as a quick guide for admins and teachers on how to manage accounts, filter students by
+                grade, and read the analytics.
               </p>
               <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
-                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 180px;">
+                <div
+                  style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 180px;">
                   <div style="font-size: 32px; margin-bottom: 8px;">📚</div>
                   <div style="font-weight: 600; color: #5a67d8; margin-bottom: 4px;">Filter Students</div>
-                  <div style="font-size: 14px; color: #718096;">Use the “Filter by Grade” dropdown at the top to narrow students by grade level.</div>
+                  <div style="font-size: 14px; color: #718096;">Use the “Filter by Grade” dropdown at the top to narrow
+                    students by grade level.</div>
                 </div>
-                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 180px;">
+                <div
+                  style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 180px;">
                   <div style="font-size: 32px; margin-bottom: 8px;">➕</div>
                   <div style="font-weight: 600; color: #48bb78; margin-bottom: 4px;">Create Accounts</div>
-                  <div style="font-size: 14px; color: #718096;">Click “Create Account” to add new teacher or student accounts and assign the correct grade.</div>
+                  <div style="font-size: 14px; color: #718096;">Click “Create Account” to add new student
+                    accounts and assign the correct grade.</div>
                 </div>
-                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 180px;">
+                <div
+                  style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 180px;">
                   <div style="font-size: 32px; margin-bottom: 8px;">📊</div>
                   <div style="font-weight: 600; color: #667eea; margin-bottom: 4px;">View Analytics</div>
-                  <div style="font-size: 14px; color: #718096;">Use the Progress & Analytics and Learning Insights pages to track student performance.</div>
+                  <div style="font-size: 14px; color: #718096;">Use the Progress & Analytics and Learning Insights pages
+                    to track student performance.</div>
                 </div>
               </div>
             </div>
@@ -1824,18 +1787,24 @@
               <div id="aiSummaryGuide" class="ai-summary-content">
                 <div style="text-align: center; padding: 40px 30px; opacity: 0.9;">
                   <div style="font-size: 48px; margin-bottom: 15px;">AI</div>
-                  <h4 style="color: rgba(255,255,255,0.95); font-size: 20px; margin-bottom: 10px; font-weight: 600;">AI-Powered Insights</h4>
-                  <p style="color: rgba(255,255,255,0.85); font-size: 15px; line-height: 1.6; max-width: 600px; margin: 0 auto;">
-                    When a student is selected, the AI analyzes their activity to highlight strengths, gaps, and recommended topics. Use these insights to plan targeted practice and interventions.
+                  <h4 style="color: rgba(255,255,255,0.95); font-size: 20px; margin-bottom: 10px; font-weight: 600;">
+                    AI-Powered Insights</h4>
+                  <p
+                    style="color: rgba(255,255,255,0.85); font-size: 15px; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+                    When a student is selected, the AI analyzes their activity to highlight strengths, gaps, and
+                    recommended topics. Use these insights to plan targeted practice and interventions.
                   </p>
                 </div>
               </div>
             </div>
-            <div style="margin-top: 20px; padding: 24px; background: #fffbf0; border-radius: 10px; border: 2px solid #fef3c7; text-align: center;">
+            <div
+              style="margin-top: 20px; padding: 24px; background: #fffbf0; border-radius: 10px; border: 2px solid #fef3c7; text-align: center;">
               <div style="font-size: 40px; margin-bottom: 10px;">🔔</div>
-              <h4 style="color: #92400e; font-size: 18px; margin-bottom: 8px; font-weight: 600;">Alerts and Notifications</h4>
+              <h4 style="color: #92400e; font-size: 18px; margin-bottom: 8px; font-weight: 600;">Alerts and
+                Notifications</h4>
               <p style="color: #78350f; font-size: 14px; max-width: 600px; margin: 0 auto;">
-                Alerts appear when students need support—for example, repeated low scores or long periods of inactivity. Check this regularly to see which students need attention.
+                Alerts appear when students need support—for example, repeated low scores or long periods of inactivity.
+                Check this regularly to see which students need attention.
               </p>
             </div>
           </div>
@@ -1851,33 +1820,30 @@
       document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
       });
-      
+
       // Remove active class from all nav items
       document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
       });
-      
+
       // Show selected page
       document.getElementById(pageId).classList.add('active');
-      
+
       // Add active class to clicked nav item
       event.currentTarget.classList.add('active');
-      
+
       // Initialize charts if on page 2
       if (pageId === 'page2') {
         setTimeout(() => {
           initCharts();
         }, 100);
       }
-      
+
       // Load students if on page 5
       if (pageId === 'page5') {
         loadStudents();
       }
-      if (pageId === 'page6') {
-        loadTeachers();
-      }
-      
+
       // Load real data when switching to analytics/insights pages
       if (pageId === 'page2' && selectedStudent) {
         setTimeout(() => {
@@ -1885,14 +1851,14 @@
           loadActivityTimeline(selectedStudent);
         }, 100);
       }
-      
+
       if (pageId === 'page3' && selectedStudent) {
         setTimeout(() => {
           loadCurriculumProgress(selectedStudent);
           loadRemedialActivities(selectedStudent);
         }, 100);
       }
-      
+
       if (pageId === 'page4' && selectedStudent) {
         setTimeout(() => {
           loadStudentRewards(selectedStudent);
@@ -1908,7 +1874,7 @@
         // Show placeholder if no student selected
         return;
       }
-      
+
       // Destroy existing charts if they exist
       if (performanceChart) performanceChart.destroy();
       if (subjectChart) subjectChart.destroy();
@@ -1919,11 +1885,11 @@
         const sessionsResult = await window.electronAPI.invoke('get-practice-sessions', selectedStudent.id);
         const topicProgressResult = await window.electronAPI.invoke('get-student-topic-progress', selectedStudent.id, selectedStudent.grade);
         const curriculumResult = await window.electronAPI.invoke('get-curriculum-topics', selectedStudent.grade);
-        
+
         const sessions = sessionsResult.success ? (sessionsResult.sessions || []) : [];
         const topicProgress = topicProgressResult.success ? (topicProgressResult.progress || []) : [];
         const topics = curriculumResult.success ? (curriculumResult.topics || []) : [];
-        
+
         // Performance Over Time Chart - Use last 6 sessions
         const performanceCtx = document.getElementById('performanceChart');
         if (performanceCtx) {
@@ -1932,13 +1898,13 @@
           const scores = recentSessions.map(s => {
             return s.total_questions > 0 ? Math.round((s.score / s.total_questions) * 100) : 0;
           });
-          
+
           // If less than 6 sessions, pad with zeros or use topic progress
           while (labels.length < 6) {
             labels.unshift(`Week ${labels.length + 1}`);
             scores.unshift(scores.length > 0 ? scores[0] : 0);
           }
-          
+
           performanceChart = new Chart(performanceCtx.getContext('2d'), {
             type: 'line',
             data: {
@@ -1985,13 +1951,13 @@
               categoryScores[topic.category].push(tp.best_score || 0);
             }
           });
-          
+
           const categories = Object.keys(categoryScores);
           const avgScores = categories.map(cat => {
             const scores = categoryScores[cat];
             return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
           });
-          
+
           if (categories.length > 0) {
             subjectChart = new Chart(subjectCtx.getContext('2d'), {
               type: 'doughnut',
@@ -2030,7 +1996,7 @@
         if (engagementCtx) {
           const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
           const dayCounts = [0, 0, 0, 0, 0, 0, 0];
-          
+
           sessions.forEach(s => {
             if (s.completed_at) {
               const date = new Date(s.completed_at);
@@ -2038,7 +2004,7 @@
               dayCounts[dayOfWeek]++;
             }
           });
-          
+
           engagementChart = new Chart(engagementCtx.getContext('2d'), {
             type: 'bar',
             data: {
@@ -2073,37 +2039,7 @@
     // Current selected student / teacher lists and role
     let selectedStudent = null;
     let allStudents = [];
-    let allTeachers = [];
     let currentUserRole = null;
-    let teacherGrades = [];
-
-    function updateGradeFiltersForTeacher() {
-      if (!teacherGrades || teacherGrades.length === 0) return;
-
-      const gradeFilterIds = ['gradeFilterTop', 'gradeFilterPage5'];
-      gradeFilterIds.forEach(id => {
-        const selectEl = document.getElementById(id);
-        if (!selectEl) return;
-
-        // Clear existing options
-        selectEl.innerHTML = '';
-
-        // "All My Grades" option
-        const allOpt = document.createElement('option');
-        allOpt.value = '';
-        allOpt.textContent = 'All My Grades';
-        selectEl.appendChild(allOpt);
-
-        // One option per assigned grade
-        const sortedGrades = [...teacherGrades].sort((a, b) => a - b);
-        sortedGrades.forEach(g => {
-          const opt = document.createElement('option');
-          opt.value = String(g);
-          opt.textContent = `Grade ${g}`;
-          selectEl.appendChild(opt);
-        });
-      });
-    }
 
     // Load students from database
     async function loadStudents() {
@@ -2132,15 +2068,19 @@
         if (gradeFilterPageEl && gradeFilter !== null) {
           gradeFilterPageEl.value = gradeFilter;
         }
-        
+
         // Clear existing options
-        select.innerHTML = '<option value="">-- Select a student --</option>';
-        profilesList.innerHTML = '';
+        if (select) {
+          select.innerHTML = '<option value="">-- Select a student --</option>';
+        }
+        if (profilesList) {
+          profilesList.innerHTML = '';
+        }
         allStudents = [];
 
         // Get all students (combine children and direct students)
         let students = [];
-        
+
         // Get children only for parents (legacy)
         if (currentUser.userType === 'parent') {
           if (window.electronAPI && window.electronAPI.invoke) {
@@ -2150,32 +2090,23 @@
               childrenResult.children.forEach(child => {
                 // Apply grade filter if set
                 if (!gradeFilter || gradeFilter === '' || child.grade === parseInt(gradeFilter)) {
-                students.push({
-                  id: child.id,
-                  name: child.name,
-                  grade: child.grade,
-                  isChild: true
-                });
+                  students.push({
+                    id: child.id,
+                    name: child.name,
+                    grade: child.grade,
+                    isChild: true
+                  });
                 }
               });
             }
           }
         }
-        
+
         // Get all students from users table with grade filter (admin) or scoped (teacher)
         if (window.electronAPI && window.electronAPI.invoke) {
           const allStudentsResult = await window.electronAPI.invoke('get-all-students', gradeFilter || null);
           if (allStudentsResult.success && allStudentsResult.students) {
             let fetchedStudents = allStudentsResult.students;
-
-            // Extra safety: if this is a teacher, filter again on the frontend by their assigned grades
-            if (currentUserRole === 'teacher' && teacherGrades && teacherGrades.length > 0) {
-              const gradeSet = new Set(teacherGrades.map(g => parseInt(g)));
-              fetchedStudents = fetchedStudents.filter(student => {
-                const g = parseInt(student.grade || student.student_grade);
-                return gradeSet.has(g);
-              });
-            }
 
             // Add students that aren't already in the list
             fetchedStudents.forEach(student => {
@@ -2192,20 +2123,22 @@
             });
           }
         }
-        
+
         allStudents = students;
-        
+
         // Add each student to dropdown and table
         const studentsEmptyState = document.getElementById('studentsEmptyState');
         let visibleCount = 0;
 
         students.forEach((student) => {
           // Dropdown option
-          const option = document.createElement('option');
-          option.value = student.id;
-          option.textContent = `${student.name} (Grade ${student.grade || 'N/A'})`;
-          select.appendChild(option);
-          
+          if (select) {
+            const option = document.createElement('option');
+            option.value = student.id;
+            option.textContent = `${student.name} (Grade ${student.grade || 'N/A'})`;
+            select.appendChild(option);
+          }
+
           // Optional text search filter (admin only)
           const searchInput = document.getElementById('studentSearch');
           const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
@@ -2230,7 +2163,9 @@
             <td>${createdText}</td>
             <td><span class="status-pill muted">${typeLabel}</span></td>
           `;
-          profilesList.appendChild(tr);
+          if (profilesList) {
+            profilesList.appendChild(tr);
+          }
         });
 
         if (studentsEmptyState) {
@@ -2239,7 +2174,9 @@
 
         // Auto-select first student if available (ignores search)
         if (students.length > 0) {
-          select.value = students[0].id;
+          if (select) {
+            select.value = students[0].id;
+          }
           await loadChildData(students[0].id);
         }
       } catch (error) {
@@ -2247,72 +2184,13 @@
       }
     }
 
-    // Load teachers from database
-    async function loadTeachers() {
-      try {
-        const currentUser = await window.auth.getCurrentUser();
-        if (!currentUser) {
-          console.error('No user logged in');
-          return;
-        }
-
-        const teachersList = document.getElementById('teachersList');
-        const teachersEmptyState = document.getElementById('teachersEmptyState');
-        if (!teachersList) return;
-
-        const gradeFilterEl = document.getElementById('teacherGradeFilter');
-        const gradeFilter = gradeFilterEl ? gradeFilterEl.value : null;
-
-        teachersList.innerHTML = '';
-        allTeachers = [];
-
-        if (window.electronAPI && window.electronAPI.invoke) {
-          const result = await window.electronAPI.invoke('get-all-teachers', gradeFilter || null);
-          if (result.success && result.teachers) {
-            allTeachers = result.teachers;
-
-            if (allTeachers.length === 0) {
-              if (teachersEmptyState) teachersEmptyState.style.display = 'block';
-              return;
-            }
-
-            if (teachersEmptyState) teachersEmptyState.style.display = 'none';
-
-            allTeachers.forEach((teacher) => {
-              const gradesText = teacher.grades
-                ? teacher.grades.split(',').map(g => g.trim())
-                : [];
-              const createdText = teacher.created_at ? new Date(teacher.created_at).toLocaleDateString() : '—';
-
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td>${teacher.name}</td>
-                <td>${teacher.email}</td>
-                <td>
-                  ${gradesText.length ? gradesText.map(g => `<span class="chip">Grade ${g}</span>`).join(' ') : '<span class="status-pill muted">No grades set</span>'}
-                </td>
-                <td>${createdText}</td>
-              `;
-              teachersList.appendChild(tr);
-            });
-          } else {
-            if (teachersEmptyState) {
-              teachersEmptyState.textContent = 'Unable to load teachers.';
-              teachersEmptyState.style.display = 'block';
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error loading teachers:', error);
-      }
-    }
 
     // Load child data when selection changes
     async function loadChildData(studentId) {
       if (!studentId) {
         studentId = document.getElementById('childSelect').value;
       }
-      
+
       if (!studentId) {
         selectedStudent = null;
         return;
@@ -2322,7 +2200,7 @@
         // Get student info
         const student = allStudents.find(s => s.id == studentId);
         if (!student) return;
-        
+
         selectedStudent = {
           id: parseInt(studentId),
           name: student.name,
@@ -2334,7 +2212,7 @@
         await loadStudentAnalytics(selectedStudent);
         await loadStudentInsights(selectedStudent);
         await loadStudentRewards(selectedStudent);
-        
+
         // Update page 1 (Home) if active
         if (document.getElementById('page1').classList.contains('active')) {
           await loadStudentOverview(selectedStudent);
@@ -2357,24 +2235,7 @@
       document.getElementById('modalStudentEmail').value = '';
       document.getElementById('modalStudentPassword').value = '';
       const gradeSelect = document.getElementById('modalStudentGrade');
-      if (currentUserRole === 'teacher' && teacherGrades && teacherGrades.length > 0) {
-        // Rebuild options to only show teacher's grades
-        gradeSelect.innerHTML = '';
-        const defaultOpt = document.createElement('option');
-        defaultOpt.value = '';
-        defaultOpt.textContent = 'Select Grade';
-        gradeSelect.appendChild(defaultOpt);
-
-        const sortedGrades = [...teacherGrades].sort((a, b) => a - b);
-        sortedGrades.forEach(g => {
-          const opt = document.createElement('option');
-          opt.value = String(g);
-          opt.textContent = `Grade ${g}`;
-          gradeSelect.appendChild(opt);
-        });
-      } else {
-        gradeSelect.value = '';
-      }
+      gradeSelect.value = '';
       document.getElementById('modalError').classList.remove('show');
       document.getElementById('modalError').textContent = '';
     }
@@ -2385,24 +2246,7 @@
       modal.classList.remove('active');
     }
 
-    // Show add teacher modal
-    function showAddTeacherModal() {
-      const modal = document.getElementById('addTeacherModal');
-      modal.classList.add('active');
-      document.getElementById('modalTeacherName').value = '';
-      document.getElementById('modalTeacherEmail').value = '';
-      document.getElementById('modalTeacherPassword').value = '';
-      document.querySelectorAll('.teacher-grade-checkbox').forEach(cb => cb.checked = false);
-      const err = document.getElementById('teacherModalError');
-      err.classList.remove('show');
-      err.textContent = '';
-    }
 
-    // Close add teacher modal
-    function closeAddTeacherModal() {
-      const modal = document.getElementById('addTeacherModal');
-      modal.classList.remove('active');
-    }
 
     // Toggle password visibility in modal
     function toggleModalPassword(inputId) {
@@ -2441,7 +2285,7 @@
     // Handle add account form submission
     async function handleAddAccount(event) {
       event.preventDefault();
-      
+
       const errorDiv = document.getElementById('modalError');
       errorDiv.classList.remove('show');
       errorDiv.textContent = '';
@@ -2488,7 +2332,7 @@
       const hasUpperCase = /[A-Z]/.test(password);
       const hasLowerCase = /[a-z]/.test(password);
       const hasNumber = /[0-9]/.test(password);
-      
+
       if (!hasUpperCase || !hasLowerCase || !hasNumber) {
         errorDiv.textContent = 'Password must contain uppercase, lowercase, and number';
         errorDiv.classList.add('show');
@@ -2509,14 +2353,15 @@
         userType: userType,
         studentName: userType === 'student' ? fullName : null,
         studentGrade: userType === 'student' ? parseInt(grade) : null,
-        studentCode: null
+        studentCode: null,
+        token: window.sessionStorage.getItem('sessionToken')
       };
 
       try {
         // Create the account using create-user handler
         if (window.electronAPI && window.electronAPI.invoke) {
           const result = await window.electronAPI.invoke('create-user', userData);
-          
+
           if (result.success) {
             showToast('Student account created successfully!');
             await loadStudents();
@@ -2541,125 +2386,10 @@
       }
     }
 
-    // Handle add teacher account form submission
-    async function handleAddTeacherAccount(event) {
-      event.preventDefault();
 
-      const errorDiv = document.getElementById('teacherModalError');
-      errorDiv.classList.remove('show');
-      errorDiv.style.color = '#fc8181';
-      errorDiv.textContent = '';
-
-      const fullName = document.getElementById('modalTeacherName').value.trim();
-      const email = document.getElementById('modalTeacherEmail').value.trim();
-      const password = document.getElementById('modalTeacherPassword').value;
-      const gradeCheckboxes = Array.from(document.querySelectorAll('.teacher-grade-checkbox:checked'));
-      const teacherGrades = gradeCheckboxes.map(cb => parseInt(cb.value));
-
-      if (!fullName) {
-        errorDiv.textContent = 'Please enter full name';
-        errorDiv.classList.add('show');
-        return;
-      }
-
-      if (!email) {
-        errorDiv.textContent = 'Please enter email';
-        errorDiv.classList.add('show');
-        return;
-      }
-
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        errorDiv.textContent = 'Invalid email format';
-        errorDiv.classList.add('show');
-        return;
-      }
-
-      if (!password) {
-        errorDiv.textContent = 'Please enter password';
-        errorDiv.classList.add('show');
-        return;
-      }
-
-      if (password.length < 8) {
-        errorDiv.textContent = 'Password must be at least 8 characters long';
-        errorDiv.classList.add('show');
-        return;
-      }
-
-      const hasUpperCase = /[A-Z]/.test(password);
-      const hasLowerCase = /[a-z]/.test(password);
-      const hasNumber = /[0-9]/.test(password);
-
-      if (!hasUpperCase || !hasLowerCase || !hasNumber) {
-        errorDiv.textContent = 'Password must contain uppercase, lowercase, and number';
-        errorDiv.classList.add('show');
-        return;
-      }
-
-      if (teacherGrades.length === 0) {
-        errorDiv.textContent = 'Please select at least one grade level';
-        errorDiv.classList.add('show');
-        return;
-      }
-
-      const userData = {
-        fullName: fullName,
-        email: email,
-        password: password,
-        userType: 'teacher',
-        studentName: null,
-        studentGrade: null,
-        studentCode: null,
-        teacherGrades: teacherGrades
-      };
-
-      try {
-        if (window.adminAPI && window.adminAPI.createUser) {
-          const result = await window.adminAPI.createUser(userData);
-
-          if (result.success) {
-            errorDiv.textContent = 'Teacher account created successfully!';
-            errorDiv.style.color = '#22c55e';
-            errorDiv.classList.add('show');
-            await loadTeachers();
-            setTimeout(() => {
-              closeAddTeacherModal();
-              errorDiv.style.color = '#fc8181';
-            }, 1500);
-          } else {
-            errorDiv.textContent = result.error || 'Failed to create teacher account. Please try again.';
-            errorDiv.classList.add('show');
-          }
-        } else if (window.electronAPI && window.electronAPI.invoke) {
-          // Fallback to generic invoke
-          const result = await window.electronAPI.invoke('create-user', userData);
-          if (result.success) {
-            errorDiv.textContent = 'Teacher account created successfully!';
-            errorDiv.style.color = '#22c55e';
-            errorDiv.classList.add('show');
-            await loadTeachers();
-            setTimeout(() => {
-              closeAddTeacherModal();
-              errorDiv.style.color = '#fc8181';
-            }, 1500);
-          } else {
-            errorDiv.textContent = result.error || 'Failed to create teacher account. Please try again.';
-            errorDiv.classList.add('show');
-          }
-        } else {
-          errorDiv.textContent = 'System not available';
-          errorDiv.classList.add('show');
-        }
-      } catch (err) {
-        console.error('Error creating teacher account:', err);
-        errorDiv.textContent = 'An error occurred. Please try again.';
-        errorDiv.classList.add('show');
-      }
-    }
 
     // Close modal when clicking outside
-    document.addEventListener('click', function(event) {
+    document.addEventListener('click', function (event) {
       const modal = document.getElementById('addStudentModal');
       if (event.target === modal) {
         closeAddStudentModal();
@@ -2670,7 +2400,7 @@
     async function editProfile(studentId) {
       const student = allStudents.find(s => s.id == studentId);
       if (!student) return;
-      
+
       const newGrade = prompt(`Edit grade for ${student.name}:\n(Current: Grade ${student.grade || 'N/A'})`, student.grade);
       if (newGrade && newGrade !== student.grade) {
         try {
@@ -2699,7 +2429,7 @@
     async function deleteProfile(studentId) {
       const student = allStudents.find(s => s.id == studentId);
       if (!student) return;
-      
+
       if (!confirm(`Are you sure you want to delete ${student.name}'s profile? This action cannot be undone.`)) {
         return;
       }
@@ -2708,7 +2438,7 @@
         // Note: This would require a delete-user backend function
         // For now, we'll show a message
         alert('Student deletion feature requires backend implementation. This would permanently delete the student account and all their data.');
-        
+
         // Remove from UI temporarily (would need backend function to actually delete)
         // await loadStudents(); // Reload to sync
       } catch (error) {
@@ -2720,7 +2450,7 @@
     // Load student overview with real data
     async function loadStudentOverview(student) {
       if (!student) return;
-      
+
       try {
         // Ensure student has a valid grade
         if (!student.grade || student.grade === 'N/A' || student.grade === null) {
@@ -2732,18 +2462,18 @@
           `;
           return;
         }
-        
+
         // Load student progress
         const progressResult = await window.electronAPI.invoke('get-student-progress', student.id);
         const topicProgressResult = await window.electronAPI.invoke('get-student-topic-progress', student.id, student.grade);
         const sessionsResult = await window.electronAPI.invoke('get-practice-sessions', student.id);
         const curriculumResult = await window.electronAPI.invoke('get-curriculum-topics', student.grade);
-        
+
         const progress = progressResult.success ? progressResult.progress : null;
         const topicProgress = topicProgressResult.success ? (topicProgressResult.progress || []) : [];
         const sessions = sessionsResult.success ? (sessionsResult.sessions || []) : [];
         const topics = curriculumResult.success ? (curriculumResult.topics || []) : [];
-        
+
         // Debug logging (can be removed later)
         console.log('Student Overview Data:', {
           studentId: student.id,
@@ -2753,15 +2483,15 @@
           topics: topics.length,
           progress: progress
         });
-        
+
         // Calculate statistics - handle empty data gracefully
-        const completedTopics = topicProgress.filter(p => 
-          (p.completed === 1 || p.completed === true) || 
+        const completedTopics = topicProgress.filter(p =>
+          (p.completed === 1 || p.completed === true) ||
           (p.progress_percentage >= 100)
         ).length;
         const totalTopics = topics.length || 0;
         const overallProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
-        
+
         // Calculate average score - try multiple sources
         let averageScore = 0;
         if (sessions.length > 0) {
@@ -2775,7 +2505,7 @@
             averageScore = Math.round(totalScore / validSessions.length);
           }
         }
-        
+
         // Fallback: Calculate from topic progress best scores
         if (averageScore === 0 && topicProgress.length > 0) {
           const topicsWithScores = topicProgress.filter(p => p.best_score && p.best_score > 0);
@@ -2784,7 +2514,7 @@
             averageScore = Math.round(totalScore / topicsWithScores.length);
           }
         }
-        
+
         // Calculate time spent (estimate 2.5 minutes per session)
         // Only count sessions from the past 30 days for time spent
         const thirtyDaysAgo = new Date();
@@ -2797,10 +2527,10 @@
         const timeSpentHours = Math.floor(timeSpentMinutes / 60);
         const timeSpentMins = Math.round(timeSpentMinutes % 60);
         const timeSpentDisplay = timeSpentHours > 0 ? `${timeSpentHours}h ${timeSpentMins}m` : `${Math.max(0, timeSpentMins)}m`;
-        
+
         // Get streak days
         const streakDays = progress ? (progress.streak_days || 0) : 0;
-        
+
         // Update overview stats
         const overviewDiv = document.getElementById('studentOverview');
         overviewDiv.innerHTML = `
@@ -2831,10 +2561,10 @@
             </div>
           </div>
         `;
-        
+
         // Generate AI Summary
         await loadAIInsights(student, progress, topicProgress, topics, sessions);
-        
+
         // Generate alerts
         await generateAlerts(student, progress, topicProgress, sessions);
       } catch (error) {
@@ -2844,28 +2574,28 @@
         `;
       }
     }
-    
+
     // Load AI insights using rule-based AI
     async function loadAIInsights(student, progress, topicProgress, topics, sessions) {
       const summaryDiv = document.getElementById('aiSummaryContent');
       if (!summaryDiv) return;
-      
+
       try {
         // Calculate metrics first
         const completedTopics = topicProgress.filter(p => p.completed || p.progress_percentage >= 100).length;
         const totalTopics = topics.length;
-        const avgScore = topicProgress.length > 0 
+        const avgScore = topicProgress.length > 0
           ? Math.round(topicProgress.reduce((sum, p) => sum + (p.best_score || 0), 0) / topicProgress.length)
-          : (sessions.length > 0 
+          : (sessions.length > 0
             ? Math.round(sessions.reduce((sum, s) => {
-                const percentage = s.total_questions > 0 ? (s.score / s.total_questions) * 100 : 0;
-                return sum + percentage;
-              }, 0) / sessions.length)
+              const percentage = s.total_questions > 0 ? (s.score / s.total_questions) * 100 : 0;
+              return sum + percentage;
+            }, 0) / sessions.length)
             : 0);
-        
+
         const weakAreas = topicProgress.filter(p => (p.best_score || 0) < 70 && (p.progress_percentage || 0) > 0);
         const strongAreas = topicProgress.filter(p => (p.best_score || 0) >= 90);
-        
+
         // Get recent sessions (last 7 days)
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -2873,7 +2603,7 @@
           if (!s.completed_at) return false;
           return new Date(s.completed_at) >= oneWeekAgo;
         });
-        
+
         // Try to get AI analysis
         let aiResult = null;
         try {
@@ -2881,7 +2611,7 @@
         } catch (error) {
           console.log('AI analysis not available, using rule-based insights');
         }
-        
+
         // Generate performance summary
         let performanceSummary = '';
         if (recentSessions.length > 0) {
@@ -2895,7 +2625,7 @@
         } else {
           performanceSummary = `${student.name} is just getting started! Completed ${completedTopics} of ${totalTopics} lessons.`;
         }
-        
+
         // Generate learning insights
         let insights = '';
         if (weakAreas.length > 0 && strongAreas.length > 0) {
@@ -2909,7 +2639,7 @@
         } else {
           insights = `Ready to begin learning! Start with the first lesson in the curriculum.`;
         }
-        
+
         // Generate recommendations
         let recommendations = '';
         if (weakAreas.length > 0) {
@@ -2920,23 +2650,23 @@
           recommendations = `Review and practice: ${weakTopicNames}${weakAreas.length > 3 ? ` and ${weakAreas.length - 3} more` : ''}. Focus on understanding core concepts before moving forward.`;
         } else if (completedTopics < totalTopics && completedTopics > 0) {
           const nextTopic = topics.find(t => !topicProgress.find(p => p.topic_id === t.id && (p.completed || p.progress_percentage >= 100)));
-          recommendations = nextTopic 
+          recommendations = nextTopic
             ? `Great progress! Continue with: "${nextTopic.topic_title}". Keep practicing regularly to maintain momentum.`
             : `Excellent work! Consider reviewing previous topics to strengthen understanding.`;
         } else if (completedTopics === 0) {
           const firstTopic = topics[0];
-          recommendations = firstTopic 
+          recommendations = firstTopic
             ? `Start your learning journey with: "${firstTopic.topic_title}". Take your time and practice regularly.`
             : `Begin exploring the curriculum! Complete lessons to track your progress.`;
         } else {
           recommendations = `Amazing! All lessons completed. Continue practicing to maintain your skills and prepare for the next grade level!`;
         }
-        
+
         // Use AI result if available and properly formatted, otherwise use generated insights
         let finalPerformance = performanceSummary;
         let finalInsights = insights;
         let finalRecommendations = recommendations;
-        
+
         if (aiResult && aiResult.success && aiResult.analysis) {
           // Check different possible formats of AI response
           if (aiResult.analysis.summary) {
@@ -2953,7 +2683,7 @@
             finalRecommendations = aiResult.analysis.recommendedTopics.slice(0, 2).join('. ') + '.';
           }
         }
-        
+
         summaryDiv.innerHTML = `
           <div class="ai-summary-item">
             <strong>📊 This Week's Performance:</strong>
@@ -2988,22 +2718,22 @@
         `;
       }
     }
-    
+
     // Generate alerts based on student activity
     async function generateAlerts(student, progress, topicProgress, sessions) {
       const alerts = [];
-      
+
       // Check for low activity
       const today = new Date();
       const threeDaysAgo = new Date(today);
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-      
+
       const recentSessions = sessions.filter(s => {
         if (!s.completed_at) return false;
         const sessionDate = new Date(s.completed_at);
         return sessionDate >= threeDaysAgo;
       });
-      
+
       if (recentSessions.length === 0 && sessions.length > 0) {
         alerts.push({
           type: 'warning',
@@ -3013,7 +2743,7 @@
           time: 'Recent'
         });
       }
-      
+
       // Check for achievements (completed topics)
       const completedCount = topicProgress.filter(p => p.completed || p.progress_percentage >= 100).length;
       if (completedCount > 0 && completedCount % 5 === 0) {
@@ -3025,7 +2755,7 @@
           time: 'Recent'
         });
       }
-      
+
       // Check for topics needing attention
       const weakTopics = topicProgress.filter(p => (p.best_score || 0) < 70 && (p.progress_percentage || 0) > 0);
       if (weakTopics.length > 0) {
@@ -3037,7 +2767,7 @@
           time: 'Recent'
         });
       }
-      
+
       // Display alerts
       const alertsContainer = document.getElementById('alertsContainer');
       if (alerts.length > 0) {
@@ -3057,32 +2787,32 @@
         `;
       }
     }
-    
+
     // Load student analytics (charts)
     async function loadStudentAnalytics(student) {
       if (!student) return;
-      
+
       // This will be called when page 2 is shown
       // Charts will be initialized with real data
     }
-    
+
     // Load student insights (curriculum progress)
     async function loadStudentInsights(student) {
       if (!student) return;
       await loadCurriculumProgress(student);
     }
-    
+
     // Load curriculum progress by category
     async function loadCurriculumProgress(student) {
       if (!student) return;
-      
+
       try {
         const topicProgressResult = await window.electronAPI.invoke('get-student-topic-progress', student.id, student.grade);
         const curriculumResult = await window.electronAPI.invoke('get-curriculum-topics', student.grade);
-        
+
         const topicProgress = topicProgressResult.success ? (topicProgressResult.progress || []) : [];
         const topics = curriculumResult.success ? (curriculumResult.topics || []) : [];
-        
+
         // Group by category
         const categoryProgress = {};
         topics.forEach(topic => {
@@ -3094,11 +2824,11 @@
             };
           }
           categoryProgress[category].topics.push(topic);
-          
+
           const progress = topicProgress.find(tp => tp.topic_id === topic.id);
           categoryProgress[category].progress.push(progress || { progress_percentage: 0, completed: false });
         });
-        
+
         // Build HTML
         const container = document.getElementById('curriculumContainer');
         const categoryHTML = Object.keys(categoryProgress).map(category => {
@@ -3106,7 +2836,7 @@
           const completed = catData.progress.filter(p => p.completed || p.progress_percentage >= 100).length;
           const total = catData.topics.length;
           const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-          
+
           return `
             <div class="curriculum-item">
               <div class="curriculum-header">
@@ -3120,33 +2850,33 @@
             </div>
           `;
         }).join('');
-        
+
         container.innerHTML = categoryHTML || '<p style="color: #666; text-align: center; padding: 40px;">No curriculum data available.</p>';
       } catch (error) {
         console.error('Error loading curriculum progress:', error);
       }
     }
-    
+
     // Load activity timeline
     async function loadActivityTimeline(student) {
       if (!student) return;
-      
+
       try {
         const sessionsResult = await window.electronAPI.invoke('get-practice-sessions', student.id);
         const sessions = sessionsResult.success ? (sessionsResult.sessions || []) : [];
         const curriculumResult = await window.electronAPI.invoke('get-curriculum-topics', student.grade);
         const topics = curriculumResult.success ? (curriculumResult.topics || []) : [];
-        
+
         const activityContainer = document.getElementById('activityContainer');
-        
+
         if (sessions.length === 0) {
           activityContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No activity recorded yet. Encourage the student to start practicing!</p>';
           return;
         }
-        
+
         // Show last 10 sessions
         const recentSessions = sessions.slice(0, 10);
-        
+
         activityContainer.innerHTML = recentSessions.map(session => {
           const date = session.completed_at ? new Date(session.completed_at) : new Date();
           const timeAgo = getTimeAgo(date);
@@ -3154,7 +2884,7 @@
           const topicName = topic ? topic.topic_title : 'Practice Session';
           const percentage = session.total_questions > 0 ? Math.round((session.score / session.total_questions) * 100) : 0;
           const duration = session.total_questions ? Math.round(session.total_questions * 0.25) : 0; // Estimate
-          
+
           return `
             <div class="activity-item">
               <div class="activity-icon">📖</div>
@@ -3170,7 +2900,7 @@
         console.error('Error loading activity timeline:', error);
       }
     }
-    
+
     // Helper function to calculate time ago
     function getTimeAgo(date) {
       const now = new Date();
@@ -3178,7 +2908,7 @@
       const diffMins = Math.floor(diffMs / 60000);
       const diffHours = Math.floor(diffMs / 3600000);
       const diffDays = Math.floor(diffMs / 86400000);
-      
+
       if (diffMins < 60) {
         return diffMins <= 1 ? 'Just now' : `${diffMins} minutes ago`;
       } else if (diffHours < 24) {
@@ -3189,33 +2919,33 @@
         return date.toLocaleDateString();
       }
     }
-    
+
     // Load student rewards
     async function loadStudentRewards(student) {
       if (!student) return;
-      
+
       try {
         const progressResult = await window.electronAPI.invoke('get-student-progress', student.id);
         const topicProgressResult = await window.electronAPI.invoke('get-student-topic-progress', student.id, student.grade);
-        
+
         const progress = progressResult.success ? progressResult.progress : null;
         const topicProgress = topicProgressResult.success ? (topicProgressResult.progress || []) : [];
-        
+
         const coins = progress ? (progress.coins || 0) : 0;
         const completedTopics = topicProgress.filter(p => p.completed || p.progress_percentage >= 100).length;
         const streakDays = progress ? (progress.streak_days || 0) : 0;
-        
+
         // Determine badges earned
         const badges = [];
         if (completedTopics >= 10) badges.push({ icon: '📚', name: 'Bookworm', earned: true });
         if (streakDays >= 7) badges.push({ icon: '🔥', name: 'Hot Streak', earned: true });
-        
+
         const perfectScores = topicProgress.filter(p => (p.best_score || 0) === 100).length;
         if (perfectScores > 0) badges.push({ icon: '🎯', name: 'Perfect Score', earned: true });
-        
+
         const highScores = topicProgress.filter(p => (p.best_score || 0) >= 90).length;
         if (highScores >= 5) badges.push({ icon: '⭐', name: 'Star Student', earned: true });
-        
+
         // Update rewards display
         const rewardsDiv = document.getElementById('rewardsDisplay');
         rewardsDiv.innerHTML = `
@@ -3250,18 +2980,18 @@
         `;
       }
     }
-    
+
     // Load remedial and suggested activities
     async function loadRemedialActivities(student) {
       if (!student) return;
-      
+
       try {
         const topicProgressResult = await window.electronAPI.invoke('get-student-topic-progress', student.id, student.grade);
         const curriculumResult = await window.electronAPI.invoke('get-curriculum-topics', student.grade);
-        
+
         const topicProgress = topicProgressResult.success ? (topicProgressResult.progress || []) : [];
         const topics = curriculumResult.success ? (curriculumResult.topics || []) : [];
-        
+
         // Find topics needing remediation (< 70%)
         const weakTopics = topicProgress
           .filter(tp => {
@@ -3274,7 +3004,7 @@
           })
           .filter(item => item.topic)
           .slice(0, 3);
-        
+
         // Find completed topics (for suggested next steps)
         const strongTopics = topicProgress
           .filter(tp => (tp.best_score || 0) >= 90)
@@ -3283,12 +3013,12 @@
             return { progress: tp, topic: topic };
           })
           .filter(item => item.topic);
-        
+
         // Find next uncompleted topics
         const nextTopics = topics
           .filter(t => !topicProgress.find(tp => tp.topic_id === t.id && (tp.completed || tp.progress_percentage >= 100)))
           .slice(0, 3);
-        
+
         // Build remedial activities
         const remedialContainer = document.getElementById('remedialContainer');
         if (weakTopics.length > 0) {
@@ -3302,7 +3032,7 @@
         } else {
           remedialContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Great job! No topics need remediation. Keep up the excellent work! 🎉</p>';
         }
-        
+
         // Build suggested activities
         const suggestedContainer = document.getElementById('suggestedContainer');
         if (nextTopics.length > 0) {
@@ -3333,38 +3063,7 @@
               accountNameElement.textContent = user.fullName || 'User';
             }
 
-            // Role-based UI: limit what teachers can see
-            const userType = user.userType || user.user_type;
-            if (userType === 'teacher') {
-              // Hide Teachers management page (admin-only)
-              const teachersNav = document.querySelector('.sidebar .nav-item:nth-child(6)');
-              if (teachersNav) {
-                teachersNav.style.display = 'none';
-              }
-
-              // Hide Create Student Account button for teachers
-              const createStudentBtn1 = document.getElementById('createStudentAccountBtn');
-              if (createStudentBtn1) {
-                createStudentBtn1.style.display = 'none';
-              }
-              const createStudentBtn2 = document.getElementById('topCreateStudentBtn');
-              if (createStudentBtn2) {
-                createStudentBtn2.style.display = 'none';
-              }
-
-              // Load teacher grades to scope filters
-              if (window.electronAPI && window.electronAPI.invoke) {
-                try {
-                  const result = await window.electronAPI.invoke('get-teacher-grades');
-                  if (result.success && Array.isArray(result.grades)) {
-                    teacherGrades = result.grades;
-                    updateGradeFiltersForTeacher();
-                  }
-                } catch (e) {
-                  console.error('Error loading teacher grades:', e);
-                }
-              }
-            }
+            // UI cleanup logic if any
           } else {
             // No user logged in, redirect to auth
             window.navigateToAuth();
@@ -3391,13 +3090,13 @@
     }
 
     // Initialize when page loads
-    window.addEventListener('DOMContentLoaded', async function() {
+    window.addEventListener('DOMContentLoaded', async function () {
       // Load current user
       await loadCurrentUser();
-      
+
       // Always load students on dashboard load (but scoped by role)
       await loadStudents();
-      
+
       // Initialize charts if on page 2
       if (document.getElementById('page2').classList.contains('active') && selectedStudent) {
         setTimeout(() => {
@@ -3407,6 +3106,44 @@
       }
     });
   </script>
-  <script src="render.js"></script>
+
+  <!-- Modals (placed at body level to avoid backdrop-filter containment issues) -->
+  <div id="addStudentModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Create New Student Account</h3>
+        <button class="modal-close" onclick="closeAddStudentModal()">&times;</button>
+      </div>
+      <form class="modal-form" onsubmit="handleAddAccount(event)">
+        <input type="text" id="modalStudentName" placeholder="Full Name" required />
+        <input type="email" id="modalStudentEmail" placeholder="Email" required />
+        <div class="password-wrapper">
+          <input type="password" id="modalStudentPassword" placeholder="Password" required />
+          <button type="button" class="password-toggle" onclick="toggleModalPassword('modalStudentPassword')">
+            <span class="icon-eye"></span>
+          </button>
+        </div>
+        <div id="modalGradeWrapper">
+          <select id="modalStudentGrade">
+            <option value="">Select Grade</option>
+            <option value="1">Grade 1</option>
+            <option value="2">Grade 2</option>
+            <option value="3">Grade 3</option>
+            <option value="4">Grade 4</option>
+            <option value="5">Grade 5</option>
+            <option value="6">Grade 6</option>
+          </select>
+        </div>
+        <div id="modalError" class="modal-error"></div>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn modal-btn-secondary" onclick="closeAddStudentModal()">Cancel</button>
+          <button type="submit" class="modal-btn modal-btn-primary">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
 </body>
+
 </html>

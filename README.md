@@ -59,9 +59,9 @@ Mathify/
 
 ### Default Admin Account
 
-- **Email:** admin@mathify.com
-- **Password:** admin123
-- ⚠️ **Change password immediately after first login!**
+- **Email:** admin@mathify.local
+- **Password:** Admin123!
+-  **Change password immediately after first login!**
 
 ### Detailed Setup
 

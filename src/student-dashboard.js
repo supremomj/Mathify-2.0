@@ -23,10 +23,16 @@ let currentUser = null;
                 console.error('Error fetching user grade:', error);
               }
             }
+            const nameToUse = user.fullName || user.studentName || 'Student';
             const studentNameElements = document.querySelectorAll('#studentName');
             studentNameElements.forEach(el => {
-              el.textContent = user.fullName || user.studentName || 'Student';
+              el.textContent = nameToUse;
             });
+            
+            const profileAvatar = document.getElementById('profileAvatar');
+            if (profileAvatar) {
+              profileAvatar.textContent = nameToUse.charAt(0).toUpperCase();
+            }
             
             // Show grade modal if grade is missing
             if (!currentUser.studentGrade || currentUser.studentGrade === null || currentUser.studentGrade === undefined) {
@@ -100,18 +106,13 @@ let currentUser = null;
       const gradeError = document.getElementById('gradeError');
       const selectedGrade = gradeSelect.value;
 
-      gradeError.style.display = 'none';
-      gradeError.textContent = '';
-
       if (!selectedGrade) {
-        gradeError.textContent = 'Please select your grade';
-        gradeError.style.display = 'block';
+        showToast('Please select your grade', 'warning');
         return;
       }
 
       if (!currentUser || !currentUser.id) {
-        gradeError.textContent = 'User not found. Please log in again.';
-        gradeError.style.display = 'block';
+        showToast('User not found. Please log in again.', 'error');
         return;
       }
 
@@ -122,17 +123,54 @@ let currentUser = null;
         if (result && result.success) {
           currentUser.studentGrade = parseInt(selectedGrade);
           hideGradeModal();
+          showToast('Grade saved successfully!', 'success');
           await loadStudentData();
         } else {
-          gradeError.textContent = (result && result.error) || 'Failed to save grade. Please try again.';
-          gradeError.style.display = 'block';
+          showToast((result && result.error) || 'Failed to save grade. Please try again.', 'error');
         }
       } catch (error) {
         console.error('Error saving grade:', error);
-        gradeError.textContent = error.message || 'An error occurred. Please try again.';
-        gradeError.style.display = 'block';
+        showToast(error.message || 'An error occurred. Please try again.', 'error');
       }
     }
+    
+    // Toast Notification System
+    window.showToast = function(message, type = 'error') {
+      let container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+      }
+      const toast = document.createElement('div');
+      const icon = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '❌';
+      const bgColor = type === 'success' ? 'var(--success)' : type === 'warning' ? 'var(--warning)' : '#ef4444';
+      
+      toast.className = 'toast';
+      toast.style.cssText = `
+        background: white;
+        color: var(--text-primary);
+        padding: 14px 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-left: 4px solid ${bgColor};
+        animation: slideInToast 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        margin-top: 10px;
+      `;
+      
+      toast.innerHTML = `<span style="font-size: 1.2rem;">${icon}</span><span>${message}</span>`;
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'fadeOutToast 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    };
 
     // Load student progress and data
     async function loadStudentData() {
@@ -354,7 +392,11 @@ let currentUser = null;
           }
           const progress = studentProgress.current_lesson_progress || 0;
           if (currentLessonProgress) {
-            currentLessonProgress.style.width = progress + '%';
+            currentLessonProgress.style.setProperty('--target-width', progress + '%');
+            // Adding a small delay class to trigger the animation
+            currentLessonProgress.classList.remove('animated-fill');
+            void currentLessonProgress.offsetWidth; // trigger reflow
+            currentLessonProgress.classList.add('animated-fill');
           }
           if (currentLessonProgressText) {
             currentLessonProgressText.textContent = progress + '%';
@@ -428,14 +470,10 @@ let currentUser = null;
 
         if (achievements.length === 0) {
           container.innerHTML = `
-            <div class="achievement-card">
-              <div class="achievement-icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <h3 class="achievement-title">No Achievements Yet</h3>
-              <p class="achievement-desc">Play quizzes and complete lessons to start earning achievements!</p>
+            <div class="empty-state-card" style="text-align: center; padding: 3rem 2rem; background: var(--surface); border-radius: 24px; border: 2px dashed var(--border); margin: 1rem 0; width: 100%; grid-column: 1 / -1;">
+              <div style="font-size: 3.5rem; margin-bottom: 1rem;">🏆</div>
+              <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 700;">No Achievements Yet</h3>
+              <p style="color: var(--text-secondary); font-size: 0.95rem;">Play quizzes and complete lessons to start unlocking exclusive trophies!</p>
             </div>
           `;
           return;
@@ -461,7 +499,13 @@ let currentUser = null;
     function displayDailyTasks(tasks) {
       const container = document.getElementById('dailyTasks');
       if (tasks.length === 0) {
-        container.innerHTML = '<div class="loading-state">No tasks for today. Check back tomorrow!</div>';
+        container.innerHTML = `
+          <div class="empty-state-card" style="text-align: center; padding: 3rem 2rem; background: var(--surface); border-radius: 24px; border: 2px dashed var(--border); margin: 1rem 0;">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">🌟</div>
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 700;">You're all caught up!</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">No tasks for today. Check back tomorrow for more challenges and rewards!</p>
+          </div>
+        `;
         return;
       }
 
@@ -508,7 +552,13 @@ let currentUser = null;
       }
 
       if (!currentUser || !currentUser.studentGrade) {
-        container.innerHTML = '<p style="color: #666;">Please set your grade to see your learning path.</p>';
+        container.innerHTML = `
+          <div class="empty-state-card" style="text-align: center; padding: 3rem 2rem; background: var(--surface); border-radius: 24px; border: 2px dashed var(--border); margin: 1rem 0;">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">📚</div>
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 700;">Grade Not Set</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Please set your grade level to see your personalized learning path.</p>
+          </div>
+        `;
         return;
       }
 
@@ -531,7 +581,13 @@ let currentUser = null;
         }
         
         if (!result.topics || result.topics.length === 0) {
-          container.innerHTML = `<p style="color: #666;">No curriculum topics found for Grade ${currentUser.studentGrade}. Please contact your teacher to set up your curriculum.</p>`;
+          container.innerHTML = `
+            <div class="empty-state-card" style="text-align: center; padding: 3rem 2rem; background: var(--surface); border-radius: 24px; border: 2px dashed var(--border); margin: 1rem 0;">
+              <div style="font-size: 3.5rem; margin-bottom: 1rem;">🚧</div>
+              <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 700;">Coming Soon!</h3>
+              <p style="color: var(--text-secondary); font-size: 0.95rem;">No curriculum topics found for Grade ${currentUser.studentGrade}. Your learning path is being prepared.</p>
+            </div>
+          `;
           return;
         }
 
@@ -603,10 +659,10 @@ let currentUser = null;
                           ${isCompleted ? '<span style="color: #10b981; font-size: 1.2rem;">✓</span>' : ''}
                         </div>
                         <p style="margin: 0.5rem 0; color: #999; font-size: 0.9rem;">${topic.learning_outcome}</p>
-                        ${topic.category ? `<span style="background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; display: inline-block; margin-bottom: 0.5rem;">${topic.category}</span>` : ''}
+                        ${topic.category ? `<span style="background: ${getCategoryBg(topic.category)}; color: ${getCategoryText(topic.category)}; border: 1px solid ${getCategoryBorder(topic.category)}; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; display: inline-block; margin-bottom: 0.5rem; font-weight: 500;">${topic.category}</span>` : ''}
                         <div class="lesson-progress" style="margin-top: 0.5rem;">
                           <div class="progress-bar" style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                            <div class="progress-fill" style="width: ${progressPercent}%; height: 100%; background: var(--primary); transition: width 0.3s;"></div>
+                            <div class="progress-fill animated-fill" style="--target-width: ${progressPercent}%; height: 100%; background: var(--primary);"></div>
                           </div>
                           <span class="progress-text" style="font-size: 0.85rem; color: #999; margin-top: 0.25rem; display: block;">${progressPercent}% Complete</span>
                         </div>
@@ -628,10 +684,10 @@ let currentUser = null;
               <div class="path-item ${isCompleted ? 'completed' : ''}">
                 <h4>${topic.topic_title}</h4>
                 <p>${topic.learning_outcome}</p>
-                ${topic.category ? `<span style="background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; display: inline-block; margin-bottom: 1rem;">${topic.category}</span>` : ''}
+                ${topic.category ? `<span style="background: ${getCategoryBg(topic.category)}; color: ${getCategoryText(topic.category)}; border: 1px solid ${getCategoryBorder(topic.category)}; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; display: inline-block; margin-bottom: 1rem; font-weight: 500;">${topic.category}</span>` : ''}
                 <div class="lesson-progress">
                   <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                    <div class="progress-fill animated-fill" style="--target-width: ${progressPercent}%;"></div>
                   </div>
                   <span class="progress-text">${progressPercent}% ${isCompleted ? '✓' : ''}</span>
                 </div>
@@ -645,6 +701,40 @@ let currentUser = null;
         console.error('Error loading learning path:', error);
         container.innerHTML = '<p style="color: #fc8181;">Error loading learning path. Please try again.</p>';
       }
+    }
+    
+    // Helper function for category colors
+    function getCategoryBg(category) {
+      if (!category) return 'rgba(99, 102, 241, 0.1)';
+      const cat = category.toLowerCase();
+      if (cat.includes('number')) return 'rgba(99, 102, 241, 0.1)'; // Indigo
+      if (cat.includes('geometry')) return 'rgba(16, 185, 129, 0.1)'; // Green
+      if (cat.includes('algebra')) return 'rgba(139, 92, 246, 0.1)'; // Violet
+      if (cat.includes('measurement')) return 'rgba(236, 72, 153, 0.1)'; // Pink
+      if (cat.includes('statistics') || cat.includes('probability')) return 'rgba(245, 158, 11, 0.1)'; // Amber
+      return 'rgba(99, 102, 241, 0.1)';
+    }
+
+    function getCategoryText(category) {
+      if (!category) return 'var(--primary)';
+      const cat = category.toLowerCase();
+      if (cat.includes('number')) return 'var(--primary)'; // Indigo
+      if (cat.includes('geometry')) return 'var(--success)'; // Green
+      if (cat.includes('algebra')) return 'var(--secondary)'; // Violet
+      if (cat.includes('measurement')) return 'var(--accent)'; // Pink
+      if (cat.includes('statistics') || cat.includes('probability')) return '#b45309'; // Amber/Dark Orange
+      return 'var(--primary)';
+    }
+
+    function getCategoryBorder(category) {
+      if (!category) return 'rgba(99, 102, 241, 0.2)';
+      const cat = category.toLowerCase();
+      if (cat.includes('number')) return 'rgba(99, 102, 241, 0.2)';
+      if (cat.includes('geometry')) return 'rgba(16, 185, 129, 0.2)';
+      if (cat.includes('algebra')) return 'rgba(139, 92, 246, 0.2)';
+      if (cat.includes('measurement')) return 'rgba(236, 72, 153, 0.2)';
+      if (cat.includes('statistics') || cat.includes('probability')) return 'rgba(245, 158, 11, 0.2)';
+      return 'rgba(99, 102, 241, 0.2)';
     }
 
     // Update stats with real data
@@ -1027,6 +1117,9 @@ let currentUser = null;
 
     // Open game interface (full page)
     async function openGameInterface(topic) {
+      // Bypass difficulty selection, default to 'medium'
+      const difficulty = 'medium';
+
       currentGame.topic = topic;
       currentGame.currentQuestion = 0;
       currentGame.score = 0;
@@ -1037,8 +1130,8 @@ let currentUser = null;
       // Reset achievement tracker
       achievementTracker.reset();
       
-      // Generate questions based on topic (now async)
-      const questions = await generateGameQuestions(topic);
+      // Generate questions based on topic and selected difficulty
+      const questions = await generateGameQuestions(topic, difficulty);
       currentGame.questions = questions;
       currentGame.totalQuestions = currentGame.questions.length;
 
@@ -1069,6 +1162,83 @@ let currentUser = null;
       await renderGameScreen(gameContainer, topic);
     }
 
+    // Show difficulty selection UI
+    function showDifficultySelector(topic) {
+      return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.id = 'difficultySelectorModal';
+        overlay.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px);
+          display: flex; align-items: center; justify-content: center;
+          z-index: 2000; animation: fadeIn 0.3s ease-out;
+        `;
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+          background: #ffffff;
+          border: 1px solid rgba(148, 163, 184, 0.2);
+          border-radius: 20px; padding: 40px; width: 90%; max-width: 500px;
+          text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+          animation: slideInUp 0.4s ease-out;
+        `;
+
+        modal.innerHTML = `
+          <h2 style="color: var(--text-primary); margin-bottom: 10px; font-family: 'Space Grotesk', sans-serif;">Select Difficulty</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 30px;">Choose a difficulty level for <strong>${topic.topic_title}</strong></p>
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button class="diff-btn" data-diff="easy" style="background: rgba(16, 185, 129, 0.1); border: 2px solid rgba(16, 185, 129, 0.5); color: #10b981; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+              <span style="font-size: 24px; margin-right: 10px;">🌟</span> Easy
+            </button>
+            <button class="diff-btn" data-diff="medium" style="background: rgba(99, 102, 241, 0.1); border: 2px solid rgba(99, 102, 241, 0.5); color: #6366f1; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+              <span style="font-size: 24px; margin-right: 10px;">⭐</span> Medium
+            </button>
+            <button class="diff-btn" data-diff="hard" style="background: rgba(239, 68, 68, 0.1); border: 2px solid rgba(239, 68, 68, 0.5); color: #ef4444; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+              <span style="font-size: 24px; margin-right: 10px;">🔥</span> Hard
+            </button>
+            <button id="cancelDiffBtn" style="margin-top: 15px; background: transparent; border: none; color: var(--text-secondary); padding: 10px; cursor: pointer; font-size: 16px;">
+              Cancel
+            </button>
+          </div>
+        `;
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        const buttons = modal.querySelectorAll('.diff-btn');
+        buttons.forEach(btn => {
+          btn.onmouseover = () => { btn.style.transform = 'scale(1.02)'; btn.style.background = btn.style.borderColor.replace('0.5', '0.2'); };
+          btn.onmouseout = () => { btn.style.transform = 'scale(1)'; btn.style.background = btn.style.borderColor.replace('0.5', '0.1'); };
+          btn.onclick = () => {
+            document.body.removeChild(overlay);
+            resolve(btn.getAttribute('data-diff'));
+          };
+        });
+
+        document.getElementById('cancelDiffBtn').onclick = () => {
+          document.body.removeChild(overlay);
+          resolve(null);
+        };
+      });
+    }
+
+    // Text-to-Speech function
+    window.readAloud = function(text) {
+      if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9; // Slightly slower for younger kids
+        utterance.pitch = 1.1; // Slightly higher/friendlier
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        showToast('Text-to-speech is not supported in this browser.', 'warning');
+      }
+    };
+
     // Render game screen
     async function renderGameScreen(container, topic) {
       if (currentGame.currentQuestion >= currentGame.questions.length) {
@@ -1092,12 +1262,12 @@ let currentUser = null;
           #gameContainer {
             --primary: #6366f1;
             --secondary: #8b5cf6;
-            --bg-dark: #0f172a;
-            --bg-light: #1e293b;
-            --bg-card: rgba(30, 41, 59, 0.6);
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --border-color: rgba(148, 163, 184, 0.1);
+            --bg-dark: var(--bg);
+            --bg-light: var(--surface);
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --text-primary: var(--text-primary);
+            --text-secondary: var(--text-secondary);
+            --border-color: var(--border);
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
             --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
           }
@@ -1109,169 +1279,159 @@ let currentUser = null;
       container.innerHTML = `
         <div style="
           min-height: 100vh;
-          padding: 40px 20px;
           display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #0f172a;
+          flex-direction: column;
+          background: var(--bg);
           animation: fadeIn 0.4s ease-out;
+          font-family: 'Inter', sans-serif;
         ">
+          <!-- Top Navigation Bar -->
           <div style="
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 24px;
-            padding: 45px;
-            max-width: 850px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            position: relative;
-            animation: slideInUp 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
           ">
             <button onclick="closeGameInterface()" style="
-              position: absolute;
-              top: 20px;
-              right: 20px;
-              background: rgba(239, 68, 68, 0.2);
-              border: 1px solid rgba(239, 68, 68, 0.3);
-              color: #fca5a5;
-              border-radius: 50%;
-              width: 45px;
-              height: 45px;
-              font-size: 26px;
+              background: transparent;
+              border: none;
+              color: var(--text-secondary);
+              font-size: 28px;
               cursor: pointer;
-              font-family: 'Inter', sans-serif;
-              transition: all 0.3s;
-              box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: bold;
-            " onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'; this.style.transform='rotate(90deg) scale(1.1)'; this.style.boxShadow='0 6px 20px rgba(239, 68, 68, 0.4)';"
-            onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.transform='rotate(0deg) scale(1)'; this.style.boxShadow='0 4px 15px rgba(239, 68, 68, 0.2)';">×</button>
+              transition: color 0.2s;
+              padding: 5px;
+              line-height: 1;
+            " onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-secondary)'">✕</button>
             
-            <div style="margin-bottom: 20px;">
-              <h2 style="color: var(--text-primary); margin-bottom: 5px; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700;">
-                ${topic.topic_title}
-              </h2>
-              <p style="color: var(--text-secondary); font-size: 16px; font-family: 'Inter', sans-serif;">
-                Grade ${topic.grade} • ${topic.category || 'Math'}
-              </p>
-            </div>
-
             <div style="
-              background: rgba(30, 41, 59, 0.8);
-              padding: 25px;
-              border-radius: 15px;
-              margin-bottom: 25px;
+              flex: 1;
+              max-width: 600px;
+              margin: 0 30px;
               display: flex;
-              justify-content: space-between;
               align-items: center;
-              box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-              border: 1px solid rgba(148, 163, 184, 0.1);
-            ">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: #f1f5f9; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 18px;">
-                  Question ${currentGame.currentQuestion + 1} of ${currentGame.totalQuestions}
-                </span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: #6366f1; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 18px;">
-                  Score: ${currentGame.score}
-                </span>
-              </div>
-            </div>
-
-            <div style="
-              background: rgba(148, 163, 184, 0.1);
-              height: 14px;
-              border-radius: 10px;
-              margin-bottom: 35px;
-              overflow: hidden;
-              box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-              position: relative;
+              gap: 15px;
             ">
               <div style="
-                background: linear-gradient(90deg, #6366f1, #8b5cf6);
-                height: 100%;
-                width: ${progress}%;
-                transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-                position: relative;
+                flex: 1;
+                background: var(--border);
+                height: 16px;
+                border-radius: 8px;
                 overflow: hidden;
               ">
                 <div style="
-                  position: absolute;
-                  top: 0;
-                  left: 0;
-                  right: 0;
-                  bottom: 0;
-                  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-                  animation: shimmer 2s infinite;
-                "></div>
+                  background: var(--success);
+                  height: 100%;
+                  width: ${progress}%;
+                  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+                  position: relative;
+                ">
+                  <div style="
+                    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                    animation: shimmer 2s infinite;
+                  "></div>
+                </div>
               </div>
             </div>
 
-            <div style="
-              background: rgba(30, 41, 59, 0.8);
-              padding: 50px;
-              border-radius: 20px;
-              margin-bottom: 35px;
-              text-align: center;
-              box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-              border: 1px solid rgba(148, 163, 184, 0.1);
-              position: relative;
-              overflow: hidden;
-            ">
-              <div style="
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
-                animation: rotate 20s linear infinite;
-              "></div>
-              <h3 style="
-                color: #f1f5f9;
-                font-size: 32px;
-                margin-bottom: 20px;
-                font-family: 'Space Grotesk', sans-serif;
-                font-weight: 600;
-                line-height: 1.4;
-                position: relative;
-                z-index: 1;
-              ">${question.question}</h3>
+            <div style="display: flex; gap: 15px; align-items: center; font-weight: 700; font-size: 18px;">
+              <div style="color: var(--warning); display: flex; align-items: center; gap: 5px;">
+                <span>⭐</span> ${currentGame.score}
+              </div>
             </div>
+          </div>
 
-            <div id="gameAnswerArea">
-              ${renderAnswerInput(question)}
-            </div>
-            
-            <div style="margin-top: 20px; text-align: center;">
-              <button id="hintButton" onclick="showHint()" style="
-                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-                color: white;
-                border: none;
-                padding: 12px 30px;
-                border-radius: 25px;
-                font-size: 16px;
-                font-weight: 600;
-                cursor: pointer;
-                font-family: 'Fredoka', sans-serif;
-                transition: var(--transition);
-                box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-              " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(251, 191, 36, 0.6)';"
-              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(251, 191, 36, 0.4)';">
-                Get Hint ${currentGame.currentHintLevel < 3 ? `(${2 - currentGame.currentHintLevel} left)` : ''}
-              </button>
-            </div>
-            
-            <div id="hintDisplay" style="margin-top: 15px;"></div>
+          <!-- Main Scrollable Content -->
+          <div style="
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-y: auto;
+          ">
+            <div style="width: 100%; max-width: 800px;">
+              
+              <!-- Topic Info Context -->
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: var(--text-primary); margin-bottom: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700;">
+                  ${topic.topic_title}
+                </h2>
+                ${question.skill ? `<span style="background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 8px; font-size: 14px; font-weight: 600;">Target: ${question.skill}</span>` : ''}
+              </div>
 
-            <div id="gameFeedback" style="margin-top: 20px;"></div>
+              <!-- Question Container -->
+              <div style="text-align: center; margin-bottom: 40px; position: relative; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <h3 style="
+                  color: var(--text-primary);
+                  font-size: 36px;
+                  font-family: 'Space Grotesk', sans-serif;
+                  font-weight: 700;
+                  line-height: 1.4;
+                  display: inline-block;
+                  position: relative;
+                  padding-right: 60px;
+                ">
+                  ${question.question}
+                  <button onclick="readAloud('${question.question.replace(/'/g, "\\'")}')" style="
+                    position: absolute;
+                    right: 0;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: var(--surface-alt);
+                    border: 2px solid var(--border);
+                    color: var(--primary);
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                  " onmouseover="this.style.background='var(--primary)'; this.style.color='white'; this.style.transform='translateY(-50%) scale(1.1)';"
+                  onmouseout="this.style.background='var(--surface-alt)'; this.style.color='var(--primary)'; this.style.transform='translateY(-50%) scale(1)';">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"></path></svg>
+                  </button>
+                </h3>
+              </div>
+
+              <!-- Answer Area -->
+              <div id="gameAnswerArea" style="margin-bottom: 30px;">
+                ${renderAnswerInput(question)}
+              </div>
+              
+              <!-- Hint Area -->
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 40px;">
+                <button id="hintButton" onclick="showHint()" style="
+                  background: transparent;
+                  color: var(--warning);
+                  border: 2px solid var(--warning);
+                  padding: 10px 24px;
+                  border-radius: 20px;
+                  font-size: 15px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: all 0.2s;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 8px;
+                " onmouseover="this.style.background='var(--warning)'; this.style.color='white';"
+                onmouseout="this.style.background='transparent'; this.style.color='var(--warning)';">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                  Need a hint? ${currentGame.currentHintLevel < 3 ? `(${2 - currentGame.currentHintLevel} left)` : ''}
+                </button>
+                <div id="hintDisplay" style="width: 100%;"></div>
+              </div>
+
+              <div id="gameFeedback" style="margin-top: 20px;"></div>
+            </div>
           </div>
         </div>
       `;
@@ -1279,70 +1439,83 @@ let currentUser = null;
 
     // Render answer input based on question type
     function renderAnswerInput(question) {
-      if (question.type === 'multiple-choice') {
+      if (question.type === 'multiple-choice' || question.type === 'true-false') {
+        const gridStyle = question.type === 'true-false' 
+          ? 'grid-template-columns: 1fr 1fr; gap: 20px;' 
+          : 'grid-template-columns: 1fr 1fr; gap: 15px;';
+          
         return `
-          <div style="display: grid; gap: 15px;">
+          <div class="game-answer-grid" style="display: grid; ${gridStyle} max-width: 600px; margin: 0 auto;">
             ${question.options.map((opt, idx) => `
               <button onclick="checkAnswer(${idx})" style="
-                background: rgba(30, 41, 59, 0.8);
-                border: 2px solid rgba(148, 163, 184, 0.1);
-                padding: 20px;
-                border-radius: 15px;
+                background: #ffffff;
+                border: 2px solid var(--border);
+                border-bottom: 6px solid var(--border);
+                padding: 24px 20px;
+                border-radius: 20px;
                 font-size: 20px;
-                font-weight: 600;
+                font-weight: 700;
                 cursor: pointer;
-                color: #f1f5f9;
+                color: var(--text-primary);
                 font-family: 'Inter', sans-serif;
-                transition: all 0.3s;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
                 position: relative;
-                overflow: hidden;
-              " onmouseover="this.style.borderColor='#6366f1'; this.style.background='rgba(30, 41, 59, 0.9)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 4px 16px rgba(0, 0, 0, 0.2)';"
-              onmouseout="this.style.borderColor='rgba(148, 163, 184, 0.1)'; this.style.background='rgba(30, 41, 59, 0.8)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)';">
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              " onmousedown="this.style.transform='translateY(4px)'; this.style.borderBottomWidth='2px';"
+                onmouseup="this.style.transform='translateY(0)'; this.style.borderBottomWidth='6px';"
+                onmouseleave="this.style.transform='translateY(0)'; this.style.borderBottomWidth='6px';"
+                onmouseover="this.style.background='var(--surface-alt)'; this.style.borderColor='var(--primary)';"
+                onmouseout="this.style.background='#ffffff'; this.style.borderColor='var(--border)';">
                 <span style="position: relative; z-index: 1;">${opt}</span>
               </button>
             `).join('')}
           </div>
         `;
       } else {
+        const placeholderText = question.type === 'fill-blank' ? 'Fill in the blank...' : 'Enter your answer...';
         return `
-          <div style="text-align: center;">
-            <input type="number" id="gameAnswerInput" placeholder="Enter your answer" style="
+          <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 30px;">
+            <input type="number" id="gameAnswerInput" step="any" placeholder="${placeholderText}" style="
               padding: 20px;
-              font-size: 24px;
-              font-weight: 600;
-              border: 2px solid rgba(148, 163, 184, 0.1);
-              border-radius: 15px;
-              width: 250px;
+              font-size: 28px;
+              font-weight: 700;
+              border: 3px solid var(--border);
+              border-radius: 16px;
+              width: 100%;
+              max-width: 400px;
               text-align: center;
-              background: rgba(30, 41, 59, 0.8);
-              color: #f1f5f9;
-              font-family: 'Inter', sans-serif;
-              transition: all 0.3s;
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+              background: #ffffff;
+              color: var(--text-primary);
+              font-family: 'Space Grotesk', sans-serif;
+              outline: none;
+              transition: all 0.2s;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             " 
-            onfocus="this.style.borderColor='#6366f1'; this.style.boxShadow='0 0 0 3px rgba(99, 102, 241, 0.1)';"
-            onblur="this.style.borderColor='rgba(148, 163, 184, 0.1)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)';"
+            onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 4px rgba(99, 102, 241, 0.2)';"
+            onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)';"
             onkeydown="if (event.key === 'Enter') { event.preventDefault(); checkAnswer(); }"
             />
-            <br><br>
             <button onclick="checkAnswer()" style="
-              background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+              background: var(--success);
               color: white;
               border: none;
+              border-bottom: 6px solid #059669;
               padding: 18px 50px;
-              border-radius: 30px;
-              font-size: 18px;
-              font-weight: 600;
+              border-radius: 20px;
+              font-size: 20px;
+              font-weight: 700;
               cursor: pointer;
               font-family: 'Inter', sans-serif;
-              transition: all 0.3s;
-              box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+              transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+              width: 100%;
+              max-width: 400px;
               text-transform: uppercase;
               letter-spacing: 1px;
-            " onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 12px 35px rgba(99, 102, 241, 0.5)';"
-            onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 8px 25px rgba(99, 102, 241, 0.4)';">
-              Submit Answer
+            " onmousedown="this.style.transform='translateY(4px)'; this.style.borderBottomWidth='2px';"
+              onmouseup="this.style.transform='translateY(0)'; this.style.borderBottomWidth='6px';">
+              Check Answer
             </button>
           </div>
         `;
@@ -1407,6 +1580,15 @@ let currentUser = null;
     
     // Generate explanation for question
     function generateExplanation(question, userAnswer, correctAnswer) {
+      if (question.explanation) {
+        return `
+          <strong>Here's the step-by-step solution:</strong><br>
+          <div style="background: rgba(15, 23, 42, 0.3); padding: 15px; border-radius: 10px; margin-top: 10px; font-family: monospace; font-size: 16px; white-space: pre-line;">${question.explanation}</div><br>
+          <strong>Your answer:</strong> <span style="color: #f87171;">${userAnswer}</span><br>
+          <strong>Correct answer:</strong> <span style="color: #34d399;">${correctAnswer}</span>
+        `;
+      }
+
       let explanation = '';
       
       // Extract numbers from question
@@ -1468,7 +1650,7 @@ let currentUser = null;
       let isCorrect = false;
       let userAnswer = null;
 
-      if (question.type === 'multiple-choice') {
+      if (question.type === 'multiple-choice' || question.type === 'true-false') {
         userAnswer = selectedIndex;
         isCorrect = selectedIndex === question.correctAnswer;
       } else {
@@ -1486,6 +1668,12 @@ let currentUser = null;
         el.style.cursor = 'not-allowed';
       });
       
+      const explanation = generateExplanation(
+        question, 
+        userAnswer !== null ? ((question.type === 'multiple-choice' || question.type === 'true-false') ? question.options[userAnswer] : userAnswer) : 'No answer',
+        (question.type === 'multiple-choice' || question.type === 'true-false') ? question.options[question.correctAnswer] : question.correctAnswer
+      );
+
       if (isCorrect) {
         currentGame.score++;
         
@@ -1565,7 +1753,7 @@ let currentUser = null;
             color: #6ee7b7;
             padding: 25px;
             border-radius: 15px;
-            text-align: center;
+            text-align: left;
             font-family: 'Inter', sans-serif;
             font-size: 22px;
             font-weight: 600;
@@ -1574,7 +1762,8 @@ let currentUser = null;
             position: relative;
             overflow: hidden;
           ">
-            <div>Correct! Great job!</div>
+            <div style="text-align: center; margin-bottom: 15px;">Correct! Great job!</div>
+            ${question.explanation ? `<div style="font-size: 16px; line-height: 1.6; background: rgba(15, 23, 42, 0.3); padding: 15px; border-radius: 10px; margin-top: 10px; font-family: monospace; white-space: pre-line;"><strong>Step-by-step solution:</strong>\n${question.explanation}</div>` : ''}
             ${achievementHTML}
           </div>
         `;
@@ -1583,12 +1772,8 @@ let currentUser = null;
         soundManager.playWrong();
         
         // Generate explanation
-        const explanation = generateExplanation(
-          question, 
-          userAnswer !== null ? (question.type === 'multiple-choice' ? question.options[userAnswer] : userAnswer) : 'No answer',
-          question.type === 'multiple-choice' ? question.options[question.correctAnswer] : question.correctAnswer
-        );
-        
+        // Already generated earlier
+
         feedbackDiv.innerHTML = `
           <div style="
             background: rgba(239, 68, 68, 0.15);
@@ -1605,7 +1790,7 @@ let currentUser = null;
             <div style="text-align: center; margin-bottom: 15px; font-size: 24px; font-weight: 600;">
               Incorrect
             </div>
-            <div style="background: rgba(30, 41, 59, 0.5); padding: 15px; border-radius: 10px; font-size: 16px; line-height: 1.6; color: #cbd5e1;">
+            <div style="background: rgba(30, 41, 59, 0.5); padding: 15px; border-radius: 10px; font-size: 16px; line-height: 1.6; color: var(--text-secondary);">
               ${explanation}
             </div>
             <div style="text-align: center; margin-top: 15px; font-size: 16px; font-weight: 600;">
@@ -1627,44 +1812,83 @@ let currentUser = null;
 
       const promptDiv = document.createElement('div');
       promptDiv.id = 'nextQuestionPrompt';
-      promptDiv.style.marginTop = '20px';
+      promptDiv.style.position = 'fixed';
+      promptDiv.style.bottom = '0';
+      promptDiv.style.left = '0';
+      promptDiv.style.width = '100%';
+      promptDiv.style.zIndex = '1000';
+      promptDiv.style.animation = 'slideInUp 0.3s ease-out';
       promptDiv.innerHTML = `
         <div style="
-          background: rgba(15, 23, 42, 0.9);
-          border: 1px solid rgba(148, 163, 184, 0.4);
-          padding: 20px;
-          border-radius: 12px;
-          text-align: center;
-          font-family: 'Inter', sans-serif;
-          font-size: 16px;
-          color: #e5e7eb;
+          background: #ffffff;
+          border-top: 2px solid var(--border);
+          padding: 24px 30px;
+          display: flex;
+          justify-content: center;
+          box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
         ">
-          <div style="margin-bottom: 12px;">
-            ${isCorrect
-              ? 'Ready for the next question?'
-              : 'Take your time to read the tips. When you are ready, continue to the next question.'}
+          <div style="
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+          ">
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 800; color: ${isCorrect ? 'var(--success)' : 'var(--warning)'}; display: flex; align-items: center; gap: 15px;">
+              <div style="background: ${isCorrect ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                ${isCorrect ? '✓' : '!'}
+              </div>
+              <span class="desktop-only" style="display: inline-block;">
+                ${isCorrect ? 'Excellent!' : 'Keep Going!'}
+              </span>
+            </div>
+            
+            <button id="nextQuestionBtn" onclick="goToNextQuestion()" style="
+              background: ${isCorrect ? 'var(--success)' : 'var(--warning)'};
+              color: white;
+              border: none;
+              border-bottom: 6px solid ${isCorrect ? '#059669' : '#d97706'};
+              padding: 16px 50px;
+              border-radius: 20px;
+              font-size: 20px;
+              font-weight: 800;
+              cursor: pointer;
+              font-family: 'Inter', sans-serif;
+              transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+              text-transform: uppercase;
+              letter-spacing: 1.5px;
+            " onmousedown="this.style.transform='translateY(4px)'; this.style.borderBottomWidth='2px';"
+            onmouseup="this.style.transform='translateY(0)'; this.style.borderBottomWidth='6px';">
+              Continue
+            </button>
           </div>
-          <button id="nextQuestionBtn" onclick="goToNextQuestion()" style="
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            border: none;
-            padding: 10px 28px;
-            border-radius: 999px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.2s;
-            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.4);
-          " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 8px 24px rgba(79, 70, 229, 0.55)';"
-          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 18px rgba(79, 70, 229, 0.4)';">
-            Continue
-          </button>
         </div>
+        <style>
+          @media (max-width: 600px) {
+            .desktop-only { display: none !important; }
+            #nextQuestionPrompt > div { padding: 20px 15px; }
+            #nextQuestionBtn { width: 100%; padding: 16px 20px !important; }
+          }
+        </style>
       `;
 
       if (feedbackDiv && feedbackDiv.parentNode) {
         feedbackDiv.parentNode.insertBefore(promptDiv, feedbackDiv.nextSibling);
+        
+        // Add bottom padding to the scrollable container so the user can scroll past the fixed footer
+        const scrollContainer = feedbackDiv.closest('div[style*="overflow-y: auto"]') || document.getElementById('gameContainer').firstElementChild;
+        if (scrollContainer) {
+          scrollContainer.style.paddingBottom = '140px';
+          
+          // Auto-scroll slightly to make sure the feedback is visible
+          setTimeout(() => {
+            scrollContainer.scrollTo({
+              top: scrollContainer.scrollHeight,
+              behavior: 'smooth'
+            });
+          }, 100);
+        }
       }
     }
 
@@ -1770,8 +1994,8 @@ let currentUser = null;
               ">
                 ${ach.icon ? `<span style="font-size: 32px;">${ach.icon}</span>` : ''}
                 <div style="text-align: left;">
-                  <div style="font-weight: 600; font-size: 18px; color: #f1f5f9; font-family: 'Inter', sans-serif;">${ach.title}</div>
-                  <div style="font-size: 14px; color: #cbd5e1;">${ach.message}</div>
+                  <div style="font-weight: 600; font-size: 18px; color: var(--text-primary); font-family: 'Inter', sans-serif;">${ach.title}</div>
+                  <div style="font-size: 14px; color: var(--text-secondary);">${ach.message}</div>
                 </div>
               </div>
             `).join('')}
@@ -1820,110 +2044,114 @@ let currentUser = null;
       container.innerHTML = `
         <div style="
           min-height: 100vh;
-          padding: 40px 20px;
+          padding: 60px 20px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #0f172a;
+          background: var(--bg);
         ">
           <div style="
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 24px;
-            padding: 50px;
+            background: #ffffff;
+            border: 2px solid var(--border);
+            border-bottom: 8px solid var(--border);
+            border-radius: 30px;
+            padding: 50px 40px;
             max-width: 600px;
             width: 100%;
             text-align: center;
             position: relative;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
           ">
             <button onclick="closeGameInterface()" style="
               position: absolute;
               top: 20px;
               right: 20px;
-              background: rgba(239, 68, 68, 0.2);
-              border: 1px solid rgba(239, 68, 68, 0.3);
-              color: #fca5a5;
-              border-radius: 50%;
-              width: 45px;
-              height: 45px;
-              font-size: 26px;
+              background: transparent;
+              border: none;
+              color: var(--text-secondary);
+              font-size: 32px;
               cursor: pointer;
-              font-family: 'Inter', sans-serif;
-              transition: all 0.3s;
-              box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: bold;
-            " onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'; this.style.transform='rotate(90deg) scale(1.1)'; this.style.boxShadow='0 6px 20px rgba(239, 68, 68, 0.4)';"
-            onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.transform='rotate(0deg) scale(1)'; this.style.boxShadow='0 4px 15px rgba(239, 68, 68, 0.2)';">
-              ×
+              transition: color 0.2s;
+              line-height: 1;
+              padding: 5px;
+            " onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-secondary)'">
+              ✕
             </button>
             
-            <h2 style="color: #f1f5f9; margin-bottom: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; margin-top: 20px;">
-              ${isCompleted ? 'Great Job!' : 'Keep Practicing!'}
+            <h2 style="color: var(--text-primary); margin-bottom: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 800; margin-top: 10px;">
+              ${isCompleted ? 'Lesson Complete!' : 'Keep Practicing!'}
             </h2>
             
-            <p style="color: #cbd5e1; margin-bottom: 20px; font-family: 'Inter', sans-serif; font-size: 18px;">
+            <p style="color: var(--text-secondary); margin-bottom: 30px; font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 500;">
               ${topic.topic_title}
             </p>
 
             ${nextTopicMessage}
 
             <div style="
-              background: rgba(30, 41, 59, 0.8);
-              border: 1px solid rgba(148, 163, 184, 0.1);
-              padding: 40px;
-              border-radius: 15px;
+              background: var(--surface-alt);
+              border: 2px solid var(--border);
+              border-radius: 20px;
+              padding: 30px;
               margin-bottom: 30px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 10px;
             ">
-              <div style="font-size: 64px; font-weight: bold; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; font-family: 'Space Grotesk', sans-serif;">
+              <div style="font-size: 72px; font-weight: 800; color: ${isCompleted ? 'var(--success)' : 'var(--warning)'}; line-height: 1; font-family: 'Space Grotesk', sans-serif;">
                 ${percentage}%
               </div>
-              <div style="color: #cbd5e1; font-family: 'Inter', sans-serif; font-size: 18px;">
-                Score: ${currentGame.score} / ${currentGame.totalQuestions}
+              <div style="color: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 600;">
+                Score: ${currentGame.score} out of ${currentGame.totalQuestions}
               </div>
             </div>
             
             ${achievementsHTML}
 
-            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 30px;">
               ${isFullyCompleted && currentGame.nextTopic ? `
                 <button onclick="proceedToNextQuiz()" style="
-                  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                  background: var(--success);
                   color: white;
                   border: none;
-                  padding: 18px 50px;
-                  border-radius: 25px;
+                  border-bottom: 6px solid #059669;
+                  padding: 16px 40px;
+                  border-radius: 20px;
                   font-size: 18px;
-                  font-weight: bold;
+                  font-weight: 700;
                   cursor: pointer;
                   font-family: 'Inter', sans-serif;
-                  transition: all 0.3s;
-                  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-                " onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 12px 35px rgba(16, 185, 129, 0.5)';"
-                onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 8px 25px rgba(16, 185, 129, 0.4)';">
-                  Continue to Next Quiz →
+                  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+                  width: 100%;
+                  max-width: 400px;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                " onmousedown="this.style.transform='translateY(4px)'; this.style.borderBottomWidth='2px';"
+                onmouseup="this.style.transform='translateY(0)'; this.style.borderBottomWidth='6px';">
+                  Continue to Next Topic
                 </button>
               ` : ''}
-            <button onclick="closeGameInterface()" style="
-              background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-              color: white;
-              border: none;
-              padding: 18px 50px;
-              border-radius: 25px;
-              font-size: 18px;
-              font-weight: bold;
-              cursor: pointer;
-              font-family: 'Inter', sans-serif;
-              transition: all 0.3s;
-              box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-            " onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 12px 35px rgba(99, 102, 241, 0.5)';"
-            onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 8px 25px rgba(99, 102, 241, 0.4)';">
-                ${isFullyCompleted && currentGame.nextTopic ? 'Close' : 'Close'}
-            </button>
+              
+              <button onclick="closeGameInterface()" style="
+                background: var(--primary);
+                color: white;
+                border: none;
+                border-bottom: 6px solid #4f46e5;
+                padding: 16px 40px;
+                border-radius: 20px;
+                font-size: 18px;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: 'Inter', sans-serif;
+                transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+                width: 100%;
+                max-width: 400px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+              " onmousedown="this.style.transform='translateY(4px)'; this.style.borderBottomWidth='2px';"
+              onmouseup="this.style.transform='translateY(0)'; this.style.borderBottomWidth='6px';">
+                Return to Dashboard
+              </button>
             </div>
           </div>
         </div>
@@ -2340,7 +2568,7 @@ let currentUser = null;
     function generateNumberRecognitionQuestion(grade, index = 0) {
       const maxNum = grade === 1 ? 100 : grade === 2 ? 1000 : grade === 3 ? 10000 : grade === 4 ? 1000000 : 1000000;
       // Use index and timestamp to ensure variety
-      const seed = (Date.now() % 10000) + (index * 137) + Math.random() * 1000;
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 137) + Math.random() * 1000;
       const num = Math.floor((seed * 7919) % maxNum) + 1; // Prime number for better distribution
       const options = [num];
       let optionAttempts = 0;
@@ -2367,7 +2595,7 @@ let currentUser = null;
 
     function generateOrdinalNumberQuestion(grade, index = 0) {
       const maxOrd = grade === 1 ? 10 : 20;
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const position = (Math.floor(seed * 7919) % maxOrd) + 1;
       const ordinals = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', 
                         '11th', '12th', '13th', '14th', '15th', '16th', '17th', '18th', '19th', '20th'];
@@ -2407,7 +2635,7 @@ let currentUser = null;
           icon: '🍕'
         };
       } else {
-        const seed = (Date.now() % 100) + (index * 23);
+        const seed = (Math.floor(Math.random() * 1000000)) + (index * 23);
         const num = (Math.floor(seed * 7919) % 3) + 1;
         const denominators = [2, 3, 4, 5, 6, 8];
         const den = denominators[(Math.floor(seed * 7919) + index) % denominators.length];
@@ -2421,7 +2649,7 @@ let currentUser = null;
     }
 
     function generateDecimalQuestion(grade, index = 0) {
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const whole = Math.floor(seed * 7919) % 100;
       const decimal = Math.floor(seed * 9973) % 100 / 100;
       const num = whole + decimal;
@@ -2434,7 +2662,7 @@ let currentUser = null;
     }
 
     function generateOddEvenQuestion(index = 0) {
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const num = (Math.floor(seed * 7919) % 100) + 1;
       return {
         question: `Is ${num} odd or even?`,
@@ -2446,7 +2674,7 @@ let currentUser = null;
     }
 
     function generateFactorsMultiplesQuestion(grade, index = 0) {
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const num = (Math.floor(seed * 7919) % 50) + 2;
       const factors = [];
       for (let i = 1; i <= num; i++) {
@@ -2464,7 +2692,7 @@ let currentUser = null;
 
     function generateAdditionSubtractionQuestion(grade, index = 0) {
       const max = grade === 1 ? 100 : grade === 2 ? 1000 : grade === 3 ? 10000 : 1000000;
-      const seed = (Date.now() % 10000) + (index * 137);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 137);
       // Alternate between addition and subtraction for variety
       const isAdd = (index % 2 === 0);
       // Use seed to generate different numbers
@@ -2481,7 +2709,7 @@ let currentUser = null;
 
     function generateMultiplicationDivisionQuestion(grade, index = 0) {
       const tables = grade === 2 ? [2, 3, 4, 5, 10] : [6, 7, 8, 9];
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const table = tables[(Math.floor(seed * 7919) + index) % tables.length];
       const multiplier = (Math.floor(seed * 9973) % 12) + 1;
       // Alternate between multiplication and division
@@ -2506,7 +2734,7 @@ let currentUser = null;
     }
 
     function generateGEMDASQuestion(grade, index = 0) {
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const a = (Math.floor(seed * 7919) % 10) + 1;
       const b = (Math.floor(seed * 9973) % 10) + 1;
       const c = (Math.floor(seed * 7919 * 9973) % 10) + 1;
@@ -2532,7 +2760,7 @@ let currentUser = null;
     }
 
     function generateAreaPerimeterQuestion(grade, index = 0) {
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const length = (Math.floor(seed * 7919) % 10) + 1;
       const width = (Math.floor(seed * 9973) % 10) + 1;
       const isArea = (index % 2 === 0);
@@ -2560,7 +2788,7 @@ let currentUser = null;
     }
 
     function generateCircleQuestion(index = 0) {
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const radius = (Math.floor(seed * 7919) % 10) + 1;
       return {
         question: `What is the area of a circle with radius ${radius}? (Use π = 3.14, round to nearest whole)`,
@@ -2572,7 +2800,7 @@ let currentUser = null;
 
     function generateMoneyQuestion(grade, index = 0) {
       const max = grade === 1 ? 100 : 1000;
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const amount1 = Math.floor((seed * 7919) % (max / 2));
       const amount2 = Math.floor((seed * 9973) % (max / 2));
       return {
@@ -2584,7 +2812,7 @@ let currentUser = null;
     }
 
     function generateTimeQuestion(grade, index = 0) {
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const hour1 = (Math.floor(seed * 7919) % 12) + 1;
       const min1 = Math.floor(seed * 9973) % 60;
       const hour2 = (Math.floor(seed * 7919 * 9973) % 12) + 1;
@@ -2601,7 +2829,7 @@ let currentUser = null;
     }
 
     function generateLengthQuestion(grade, index = 0) {
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const length1 = (Math.floor(seed * 7919) % 100) + 1;
       const length2 = (Math.floor(seed * 9973) % 100) + 1;
       return {
@@ -2642,7 +2870,7 @@ let currentUser = null;
     }
 
     function generateProblemSolvingQuestion(grade, index = 0) {
-      const seed = (Date.now() % 1000) + (index * 97);
+      const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
       const apples = (Math.floor(seed * 7919) % 20) + 5;
       const oranges = (Math.floor(seed * 9973) % 20) + 5;
       // Vary the problem types

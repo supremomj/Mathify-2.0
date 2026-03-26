@@ -6,9 +6,25 @@
 
 class CurriculumQuestionGenerator {
   constructor() {
-    // Question templates based on curriculum learning outcomes
     this.questionTemplates = this.initializeTemplates();
+    // Filipino names for word problems
+    this.filipinoNames = ['Maria', 'Juan', 'Lita', 'Pedro', 'Ana', 'Jose', 'Rosa', 'Carlo', 'Mika', 'Aling Nena', 'Mang Tomas', 'Ate Luz', 'Kuya Ben', 'Tita Cora'];
+    // Filipino scenarios for word problems
+    this.filipinoScenarios = [
+      { place: 'sari-sari store', items: ['candy', 'juice', 'bread', 'ice candy', 'biscuits'] },
+      { place: 'palengke', items: ['mangoes', 'bangus', 'kamote', 'sitaw', 'tomatoes'] },
+      { place: 'school canteen', items: ['pandesal', 'banana cue', 'kwek-kwek', 'fishball', 'halo-halo'] },
+      { place: 'barangay fiesta', items: ['lechon', 'bibingka', 'kakanin', 'lumpia', 'puto'] },
+      { place: 'bakery', items: ['ensaymada', 'pandesal', 'monay', 'Spanish bread', 'cheese bread'] }
+    ];
   }
+
+  /** Pick a random Filipino name */
+  randomName(seed) { return this.filipinoNames[Math.abs(seed) % this.filipinoNames.length]; }
+  /** Pick a random scenario */
+  randomScenario(seed) { return this.filipinoScenarios[Math.abs(seed) % this.filipinoScenarios.length]; }
+  /** Pick a random item from a scenario */
+  randomItem(scenario, seed) { return scenario.items[Math.abs(seed) % scenario.items.length]; }
 
   /**
    * Generate questions based on curriculum topic
@@ -17,46 +33,57 @@ class CurriculumQuestionGenerator {
    * @param {number} index - Index for variety (prevents duplicates)
    * @returns {Array} Array of question objects
    */
-  generateQuestionsForTopic(topic, count = 10, index = 0) {
+  /**
+   * Generate questions based on curriculum topic
+   * @param {Object} topic - Curriculum topic with learning outcome, category, grade, etc.
+   * @param {number} count - Number of questions to generate
+   * @param {number} index - Index for variety (prevents duplicates)
+   * @param {string} difficulty - 'easy' | 'medium' | 'hard'
+   * @returns {Array} Array of question objects
+   */
+  generateQuestionsForTopic(topic, count = 10, index = 0, difficulty = 'medium') {
     const questions = [];
     const usedSignatures = new Set();
     const learningOutcome = topic.learning_outcome || '';
     const category = topic.category || 'Operations';
-    // Normalize grade to a reasonable integer between 1 and 6 so we always
-    // generate questions aligned with the learner's level.
     let grade = parseInt(topic.grade, 10);
     if (!grade || isNaN(grade)) grade = 1;
     if (grade < 1) grade = 1;
     if (grade > 6) grade = 6;
     const topicCode = topic.topic_code || '';
 
-    // Generate questions based on learning outcome keywords and category
+    // Derive skill tag from topic
+    const skill = this.deriveSkillTag(category, learningOutcome, topicCode);
+
+    // Generate a massive random offset to ensure entirely unique game sessions
+    const randomOffset = Math.floor(Math.random() * 1000000);
+
     for (let i = 0; i < count; i++) {
       let question = null;
       let attempts = 0;
-      const currentIndex = index + i;
 
       while (!question && attempts < 20) {
         attempts++;
+        // Increment seed with attempts so retry loops generate entirely new questions
+        const currentIndex = index + randomOffset + i + (attempts * 100);
         
-        // Analyze learning outcome to determine question type
         question = this.generateQuestionFromLearningOutcome(
-          learningOutcome,
-          category,
-          grade,
-          topicCode,
-          currentIndex,
-          i
+          learningOutcome, category, grade, topicCode, currentIndex, i, difficulty
         );
 
         if (question) {
-          // Check for duplicates
           const signature = `${question.question}-${question.correctAnswer}`;
           if (usedSignatures.has(signature)) {
-            question = null; // Try again
+            question = null;
             continue;
           }
           usedSignatures.add(signature);
+          // Attach metadata
+          question.difficulty = difficulty;
+          question.skill = question.skill || skill;
+          if (!question.explanation) {
+            question.explanation = this.buildExplanation(question);
+          }
         }
       }
 
@@ -65,14 +92,87 @@ class CurriculumQuestionGenerator {
       }
     }
 
+    // Shuffle to randomize order while keeping curriculum alignment
+    for (let i = questions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
+
     return questions;
+  }
+
+  /** Derive a human-readable skill tag from category and learning outcome */
+  deriveSkillTag(category, outcome, topicCode) {
+    const o = outcome.toLowerCase();
+    if (o.includes('addition') || o.includes('add') || o.includes('sum')) {
+      const rangeMatch = o.match(/up to ([\d,]+)/);
+      return rangeMatch ? `Addition up to ${rangeMatch[1]}` : 'Addition';
+    }
+    if (o.includes('subtraction') || o.includes('subtract')) {
+      const rangeMatch = o.match(/up to ([\d,]+)/);
+      return rangeMatch ? `Subtraction up to ${rangeMatch[1]}` : 'Subtraction';
+    }
+    if (o.includes('multiplication') || o.includes('multiply')) return 'Multiplication';
+    if (o.includes('division') || o.includes('divide')) return 'Division';
+    if (o.includes('fraction')) return 'Fractions';
+    if (o.includes('decimal')) return 'Decimals';
+    if (o.includes('ratio') || o.includes('proportion')) return 'Ratio & Proportion';
+    if (o.includes('percentage') || o.includes('percent')) return 'Percentages';
+    if (o.includes('money') || o.includes('peso') || o.includes('₱')) return 'Money (Philippine Peso)';
+    if (o.includes('time') || o.includes('hour') || o.includes('calendar')) return 'Time & Calendar';
+    if (o.includes('pattern')) return 'Patterns';
+    if (o.includes('shape') || o.includes('2-dimensional') || o.includes('2d')) return '2D Shapes';
+    if (o.includes('area')) return 'Area';
+    if (o.includes('perimeter')) return 'Perimeter';
+    if (o.includes('angle')) return 'Angles';
+    if (o.includes('ordinal')) return 'Ordinal Numbers';
+    if (o.includes('count') || o.includes('number')) return 'Number Sense';
+    if (o.includes('data') || o.includes('graph') || o.includes('pictograph')) return 'Data & Graphs';
+    if (o.includes('length') || o.includes('measure')) return 'Measurement';
+    if (o.includes('mass') || o.includes('weight')) return 'Mass & Weight';
+    if (o.includes('volume') || o.includes('capacity')) return 'Volume & Capacity';
+    return category || 'Mathematics';
+  }
+
+  /** Build a step-by-step explanation for a question */
+  buildExplanation(q) {
+    const nums = (q.question.match(/[\d,]+/g) || []).map(n => parseInt(n.replace(/,/g, ''), 10)).filter(n => !isNaN(n));
+    const ca = q.type === 'multiple-choice' || q.type === 'true-false'
+      ? (q.options ? q.options[q.correctAnswer] : q.correctAnswer)
+      : q.correctAnswer;
+
+    if (q.question.includes('+') || q.question.toLowerCase().includes('total') || q.question.toLowerCase().includes('together')) {
+      if (nums.length >= 2) return `Step 1: Identify the numbers: ${nums[0]} and ${nums[1]}.\nStep 2: Add them: ${nums[0]} + ${nums[1]} = ${ca}.\nThe answer is ${ca}.`;
+    }
+    if (q.question.includes('-') || q.question.toLowerCase().includes('left') || q.question.toLowerCase().includes('difference')) {
+      if (nums.length >= 2) return `Step 1: Identify the numbers: ${Math.max(nums[0],nums[1])} and ${Math.min(nums[0],nums[1])}.\nStep 2: Subtract: ${Math.max(nums[0],nums[1])} - ${Math.min(nums[0],nums[1])} = ${ca}.\nThe answer is ${ca}.`;
+    }
+    if (q.question.includes('×') || q.question.toLowerCase().includes('times')) {
+      if (nums.length >= 2) return `Step 1: Identify the factors: ${nums[0]} and ${nums[1]}.\nStep 2: Multiply: ${nums[0]} × ${nums[1]} = ${ca}.\nThe answer is ${ca}.`;
+    }
+    if (q.question.includes('÷')) {
+      if (nums.length >= 2) return `Step 1: Divide ${nums[0]} by ${nums[1]}.\nStep 2: ${nums[0]} ÷ ${nums[1]} = ${ca}.\nThe answer is ${ca}.`;
+    }
+    return `The correct answer is ${ca}.`;
+  }
+
+  /** Get difficulty multiplier for number ranges */
+  getDifficultyRange(grade, difficulty) {
+    const base = { 1: 100, 2: 1000, 3: 10000, 4: 100000, 5: 1000000, 6: 1000000 };
+    const mult = { easy: 0.3, medium: 1, hard: 1.5 };
+    return Math.round((base[grade] || 100) * (mult[difficulty] || 1));
   }
 
   /**
    * Generate question based on learning outcome text
    */
-  generateQuestionFromLearningOutcome(learningOutcome, category, grade, topicCode, index, questionNum) {
+  generateQuestionFromLearningOutcome(learningOutcome, category, grade, topicCode, index, questionNum, difficulty = 'medium') {
     const outcome = learningOutcome.toLowerCase();
+
+    // ~20% True/False variant, ~15% fill-blank variant
+    const variantRoll = (index * 7 + questionNum * 13) % 100;
+    const wantTF = variantRoll < 20;
+    const wantFillBlank = variantRoll >= 20 && variantRoll < 35;
     
     // Number Sense questions
     if (category === 'Number Sense') {
@@ -96,22 +196,21 @@ class CurriculumQuestionGenerator {
     // Operations questions
     else if (category === 'Operations') {
       if (outcome.includes('addition') || outcome.includes('add') || outcome.includes('sum')) {
-        return this.generateAdditionQuestion(grade, index, outcome);
+        return this.generateAdditionQuestion(grade, index, outcome, difficulty);
       } else if (outcome.includes('subtraction') || outcome.includes('subtract') || outcome.includes('difference')) {
-        return this.generateSubtractionQuestion(grade, index, outcome);
+        return this.generateSubtractionQuestion(grade, index, outcome, difficulty);
       } else if (outcome.includes('multiplication') || outcome.includes('multiply') || outcome.includes('product')) {
-        return this.generateMultiplicationQuestion(grade, index, outcome);
+        return this.generateMultiplicationQuestion(grade, index, outcome, difficulty);
       } else if (outcome.includes('division') || outcome.includes('divide') || outcome.includes('quotient')) {
-        return this.generateDivisionQuestion(grade, index, outcome);
+        return this.generateDivisionQuestion(grade, index, outcome, difficulty);
       } else if (outcome.includes('gemdas') || outcome.includes('order of operations') || outcome.includes('exponent')) {
-        return this.generateGEMDASQuestion(grade, index, outcome);
+        return this.generateGEMDASQuestion(grade, index, outcome, difficulty);
       } else if (outcome.includes('four operations') || outcome.includes('operations')) {
-        // Mix of operations
         const opType = questionNum % 4;
-        if (opType === 0) return this.generateAdditionQuestion(grade, index, outcome);
-        if (opType === 1) return this.generateSubtractionQuestion(grade, index, outcome);
-        if (opType === 2) return this.generateMultiplicationQuestion(grade, index, outcome);
-        return this.generateDivisionQuestion(grade, index, outcome);
+        if (opType === 0) return this.generateAdditionQuestion(grade, index, outcome, difficulty);
+        if (opType === 1) return this.generateSubtractionQuestion(grade, index, outcome, difficulty);
+        if (opType === 2) return this.generateMultiplicationQuestion(grade, index, outcome, difficulty);
+        return this.generateDivisionQuestion(grade, index, outcome, difficulty);
       }
     }
     
@@ -137,7 +236,7 @@ class CurriculumQuestionGenerator {
     // Measurement questions
     else if (category === 'Measurement') {
       if (outcome.includes('money') || outcome.includes('philippine') || outcome.includes('peso') || outcome.includes('₱')) {
-        return this.generateMoneyQuestion(grade, index, outcome);
+        return this.generateMoneyQuestion(grade, index, outcome, difficulty);
       } else if (outcome.includes('time') || outcome.includes('hour') || outcome.includes('minute') || outcome.includes('elapsed')) {
         return this.generateTimeQuestion(grade, index, outcome);
       } else if (outcome.includes('length') || outcome.includes('distance') || outcome.includes('measure')) {
@@ -167,11 +266,11 @@ class CurriculumQuestionGenerator {
     
     // Problem Solving questions
     else if (category === 'Problem Solving') {
-      return this.generateProblemSolvingQuestion(grade, index, outcome);
+      return this.generateProblemSolvingQuestion(grade, index, outcome, difficulty);
     }
 
     // Default fallback
-    return this.generateDefaultQuestion(grade, index, category);
+    return this.generateDefaultQuestion(grade, index, category, difficulty);
   }
 
   // Question generators based on learning outcomes
@@ -187,7 +286,7 @@ class CurriculumQuestionGenerator {
     else if (grade === 3) maxNum = 10000;
     else if (grade >= 4) maxNum = 1000000;
 
-    const seed = (Date.now() % 10000) + (index * 137);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 137);
     const num = Math.floor((seed * 7919) % maxNum) + 1;
     const options = [num];
     
@@ -235,7 +334,7 @@ class CurriculumQuestionGenerator {
     else if (grade === 2) maxOrd = 20;
     else if (grade >= 3) maxOrd = 100;
 
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const position = (Math.floor(seed * 7919) % maxOrd) + 1;
     const ordinals = this.getOrdinals(maxOrd);
     
@@ -263,7 +362,7 @@ class CurriculumQuestionGenerator {
   }
 
   generateFractionQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     
     if (grade === 1 || outcome.includes('1/2') || outcome.includes('1/4')) {
       const fractions = ['1/2', '1/4'];
@@ -307,8 +406,8 @@ class CurriculumQuestionGenerator {
     }
   }
 
-  generateAdditionQuestion(grade, index, outcome) {
-    // Extract sum limit from outcome
+  generateAdditionQuestion(grade, index, outcome, difficulty) {
+    const diff = difficulty || 'medium';
     let maxSum = 100;
     if (outcome.includes('100')) maxSum = 100;
     else if (outcome.includes('1,000') || outcome.includes('1000')) maxSum = 1000;
@@ -319,31 +418,84 @@ class CurriculumQuestionGenerator {
     else if (grade === 3) maxSum = 10000;
     else if (grade >= 4) maxSum = 1000000;
 
-    const seed = (Date.now() % 10000) + (index * 137);
+    // Difficulty scaling
+    if (diff === 'easy') maxSum = Math.max(20, Math.round(maxSum * 0.3));
+    else if (diff === 'hard') maxSum = Math.round(maxSum * 1.5);
+
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 137);
     let a, b, answer;
     
-    // For Grade 1: sum must be up to 100, and both numbers should be less than 100
     if (grade === 1) {
-      // Ensure sum doesn't exceed 100
-      a = (Math.floor(seed * 7919) % 99) + 1; // 1-99
-      const maxB = Math.min(100 - a, 99);
-      b = (Math.floor(seed * 9973) % maxB) + 1; // 1 to (100-a)
+      const cap = Math.min(maxSum, 100);
+      a = (Math.floor(seed * 7919) % (cap - 1)) + 1;
+      const maxB = Math.min(cap - a, cap - 1);
+      b = (Math.floor(seed * 9973) % Math.max(maxB, 1)) + 1;
       answer = a + b;
     } else {
       a = (Math.floor(seed * 7919) % (maxSum / 2)) + 1;
       b = (Math.floor(seed * 9973) % (maxSum / 2)) + 1;
       answer = a + b;
     }
-    
+
+    const skill = maxSum <= 100 ? 'Addition up to 100' : `Addition up to ${maxSum.toLocaleString()}`;
+    const variantRoll = (index * 7 + 3) % 100;
+
+    // ~25% chance of Filipino-context word problem
+    if (variantRoll < 25) {
+      const name1 = this.randomName(seed);
+      const name2 = this.randomName(seed + 5);
+      const scenario = this.randomScenario(seed);
+      const item = this.randomItem(scenario, seed);
+      return {
+        question: `${name1} bought ${a} pieces of ${item} at the ${scenario.place}. ${name2} bought ${b} more. How many pieces of ${item} do they have together?`,
+        type: 'number',
+        correctAnswer: answer,
+        icon: '➕',
+        skill,
+        explanation: `Step 1: ${name1} bought ${a} pieces of ${item}.\nStep 2: ${name2} bought ${b} more.\nStep 3: Add them: ${a} + ${b} = ${answer}.\nThe answer is ${answer}.`
+      };
+    }
+
+    // ~20% True/False variant
+    if (variantRoll >= 25 && variantRoll < 45) {
+      const wrongAnswer = answer + (Math.random() > 0.5 ? 1 : -1) * ((seed % 5) + 1);
+      const showCorrect = index % 2 === 0;
+      const shown = showCorrect ? answer : wrongAnswer;
+      return {
+        question: `True or False: ${a} + ${b} = ${shown}`,
+        type: 'true-false',
+        options: ['True', 'False'],
+        correctAnswer: showCorrect ? 0 : 1,
+        icon: '➕',
+        skill,
+        explanation: `${a} + ${b} = ${answer}. The statement says ${shown}, so the answer is ${showCorrect ? 'True' : 'False'}.`
+      };
+    }
+
+    // ~15% Fill-in-the-blank variant
+    if (variantRoll >= 45 && variantRoll < 60) {
+      return {
+        question: `Fill in the blank: ___ + ${b} = ${answer}`,
+        type: 'fill-blank',
+        correctAnswer: a,
+        icon: '➕',
+        skill,
+        explanation: `To find the missing number: ${answer} - ${b} = ${a}.\nSo ___ = ${a}.`
+      };
+    }
+
     return {
       question: `What is ${a} + ${b}?`,
       type: 'number',
       correctAnswer: answer,
-      icon: '➕'
+      icon: '➕',
+      skill,
+      explanation: `Step 1: Add ${a} + ${b}.\nStep 2: ${a} + ${b} = ${answer}.\nThe answer is ${answer}.`
     };
   }
 
-  generateSubtractionQuestion(grade, index, outcome) {
+  generateSubtractionQuestion(grade, index, outcome, difficulty) {
+    const diff = difficulty || 'medium';
     let maxNum = 100;
     if (outcome.includes('1,000') || outcome.includes('1000')) maxNum = 1000;
     else if (outcome.includes('10,000') || outcome.includes('10000')) maxNum = 10000;
@@ -351,13 +503,16 @@ class CurriculumQuestionGenerator {
     else if (grade === 2) maxNum = 1000;
     else if (grade >= 3) maxNum = 10000;
 
-    const seed = (Date.now() % 10000) + (index * 137);
+    if (diff === 'easy') maxNum = Math.max(20, Math.round(maxNum * 0.3));
+    else if (diff === 'hard') maxNum = Math.round(maxNum * 1.5);
+
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 137);
     let larger, smaller, answer;
     
-    // For Grade 1: both numbers must be less than 100
     if (grade === 1) {
-      larger = (Math.floor(seed * 7919) % 99) + 1; // 1-99
-      smaller = (Math.floor(seed * 9973) % larger) + 1; // 1 to (larger-1)
+      const cap = Math.min(maxNum, 100);
+      larger = (Math.floor(seed * 7919) % (cap - 1)) + 2;
+      smaller = (Math.floor(seed * 9973) % (larger - 1)) + 1;
       answer = larger - smaller;
     } else {
       const a = (Math.floor(seed * 7919) % (maxNum / 2)) + 1;
@@ -366,17 +521,64 @@ class CurriculumQuestionGenerator {
       smaller = Math.min(a, b);
       answer = larger - smaller;
     }
+
+    const skill = 'Subtraction';
+    const variantRoll = (index * 7 + 5) % 100;
+
+    // Filipino-context word problem
+    if (variantRoll < 25) {
+      const name = this.randomName(seed);
+      const scenario = this.randomScenario(seed);
+      const item = this.randomItem(scenario, seed);
+      return {
+        question: `${name} had ${larger} pieces of ${item}. After sharing with friends, ${smaller} were given away. How many pieces of ${item} are left?`,
+        type: 'number',
+        correctAnswer: answer,
+        icon: '➖',
+        skill,
+        explanation: `Step 1: ${name} started with ${larger} pieces of ${item}.\nStep 2: ${smaller} were given away.\nStep 3: Subtract: ${larger} - ${smaller} = ${answer}.\nThe answer is ${answer}.`
+      };
+    }
+
+    // True/False
+    if (variantRoll >= 25 && variantRoll < 45) {
+      const wrongAnswer = answer + (Math.random() > 0.5 ? 1 : -1) * ((seed % 4) + 1);
+      const showCorrect = index % 2 === 0;
+      const shown = showCorrect ? answer : wrongAnswer;
+      return {
+        question: `True or False: ${larger} - ${smaller} = ${shown}`,
+        type: 'true-false',
+        options: ['True', 'False'],
+        correctAnswer: showCorrect ? 0 : 1,
+        icon: '➖',
+        skill,
+        explanation: `${larger} - ${smaller} = ${answer}. The statement says ${shown}, so the answer is ${showCorrect ? 'True' : 'False'}.`
+      };
+    }
+
+    // Fill-in-the-blank
+    if (variantRoll >= 45 && variantRoll < 60) {
+      return {
+        question: `Fill in the blank: ${larger} - ___ = ${answer}`,
+        type: 'fill-blank',
+        correctAnswer: smaller,
+        icon: '➖',
+        skill,
+        explanation: `To find the missing number: ${larger} - ${answer} = ${smaller}.\nSo ___ = ${smaller}.`
+      };
+    }
     
     return {
       question: `What is ${larger} - ${smaller}?`,
       type: 'number',
       correctAnswer: answer,
-      icon: '➖'
+      icon: '➖',
+      skill,
+      explanation: `Step 1: Subtract ${smaller} from ${larger}.\nStep 2: ${larger} - ${smaller} = ${answer}.\nThe answer is ${answer}.`
     };
   }
 
-  generateMultiplicationQuestion(grade, index, outcome) {
-    // Extract multiplication tables from outcome
+  generateMultiplicationQuestion(grade, index, outcome, difficulty) {
     let tables = [];
     if (outcome.includes('2, 3, 4, 5, 10') || outcome.includes('2,3,4,5,10')) {
       tables = [2, 3, 4, 5, 10];
@@ -390,19 +592,54 @@ class CurriculumQuestionGenerator {
       tables = [2, 3, 4, 5];
     }
 
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const table = tables[(Math.floor(seed * 7919) + index) % tables.length];
-    const multiplier = (Math.floor(seed * 9973) % 12) + 1;
+    let maxMult = difficulty === 'easy' ? 6 : difficulty === 'hard' ? 15 : 12;
+    const multiplier = (Math.floor(seed * 9973) % maxMult) + 1;
+    const answer = table * multiplier;
+    const skill = 'Multiplication';
+    const variantRoll = (index * 7 + 9) % 100;
+
+    // T/F variant
+    if (variantRoll < 20) {
+      const wrongAnswer = answer + (Math.random() > 0.5 ? 1 : -1) * ((seed % 5) + 1);
+      const showCorrect = index % 2 === 0;
+      const shown = showCorrect ? answer : wrongAnswer;
+      return {
+        question: `True or False: ${table} × ${multiplier} = ${shown}`,
+        type: 'true-false',
+        options: ['True', 'False'],
+        correctAnswer: showCorrect ? 0 : 1,
+        icon: '✖️',
+        skill,
+        explanation: `${table} × ${multiplier} = ${answer}. The statement says ${shown}, so the answer is ${showCorrect ? 'True' : 'False'}.`
+      };
+    }
+
+    // Filipino word problem variant
+    if (variantRoll >= 20 && variantRoll < 40) {
+      const name = this.randomName(seed);
+      return {
+        question: `${name} has ${multiplier} boxes. Each box has ${table} items. How many items does ${name} have in all?`,
+        type: 'number',
+        correctAnswer: answer,
+        icon: '✖️',
+        skill,
+        explanation: `Step 1: ${name} has ${multiplier} boxes with ${table} items each.\nStep 2: Multiply: ${table} × ${multiplier} = ${answer}.\nThe answer is ${answer}.`
+      };
+    }
     
     return {
       question: `What is ${table} × ${multiplier}?`,
       type: 'number',
-      correctAnswer: table * multiplier,
-      icon: '✖️'
+      correctAnswer: answer,
+      icon: '✖️',
+      skill,
+      explanation: `${table} × ${multiplier} = ${answer}.`
     };
   }
 
-  generateDivisionQuestion(grade, index, outcome) {
+  generateDivisionQuestion(grade, index, outcome, difficulty) {
     let tables = [];
     if (outcome.includes('2, 3, 4, 5, 10') || outcome.includes('2,3,4,5,10')) {
       tables = [2, 3, 4, 5, 10];
@@ -416,21 +653,24 @@ class CurriculumQuestionGenerator {
       tables = [2, 3, 4, 5];
     }
 
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const table = tables[(Math.floor(seed * 7919) + index) % tables.length];
-    const multiplier = (Math.floor(seed * 9973) % 12) + 1;
+    let maxMult = difficulty === 'easy' ? 6 : difficulty === 'hard' ? 15 : 12;
+    const multiplier = (Math.floor(seed * 9973) % maxMult) + 1;
     const product = table * multiplier;
     
     return {
       question: `What is ${product} ÷ ${table}?`,
       type: 'number',
       correctAnswer: multiplier,
-      icon: '➗'
+      icon: '➗',
+      skill: 'Division',
+      explanation: `Step 1: We need to find how many times ${table} fits into ${product}.\nStep 2: ${product} ÷ ${table} = ${multiplier}.\nThe answer is ${multiplier}.`
     };
   }
 
-  generateGEMDASQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+  generateGEMDASQuestion(grade, index, outcome, difficulty) {
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const a = (Math.floor(seed * 7919) % 10) + 1;
     const b = (Math.floor(seed * 9973) % 10) + 1;
     const c = (Math.floor(seed * 7919 * 9973) % 10) + 1;
@@ -483,7 +723,7 @@ class CurriculumQuestionGenerator {
   }
 
   generateAreaQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const length = (Math.floor(seed * 7919) % 10) + 1;
     const width = (Math.floor(seed * 9973) % 10) + 1;
     
@@ -521,7 +761,7 @@ class CurriculumQuestionGenerator {
   }
 
   generatePerimeterQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const length = (Math.floor(seed * 7919) % 10) + 1;
     const width = (Math.floor(seed * 9973) % 10) + 1;
     
@@ -551,7 +791,7 @@ class CurriculumQuestionGenerator {
   }
 
   generateCircleQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const radius = (Math.floor(seed * 7919) % 10) + 1;
     
     if (outcome.includes('circumference')) {
@@ -571,8 +811,8 @@ class CurriculumQuestionGenerator {
     }
   }
 
-  generateMoneyQuestion(grade, index, outcome) {
-    // Extract money limit from outcome
+  generateMoneyQuestion(grade, index, outcome, difficulty) {
+    const diff = difficulty || 'medium';
     let max = 100;
     if (outcome.includes('₱100') || outcome.includes('100')) max = 100;
     else if (outcome.includes('₱1,000') || outcome.includes('1000')) max = 1000;
@@ -581,50 +821,81 @@ class CurriculumQuestionGenerator {
     else if (grade === 2) max = 1000;
     else if (grade >= 3) max = 10000;
 
-    const seed = (Date.now() % 1000) + (index * 97);
+    if (diff === 'easy') max = Math.max(50, Math.round(max * 0.3));
+    else if (diff === 'hard') max = Math.round(max * 1.5);
+
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     let amount1, amount2;
     
-    // For Grade 1: ensure amounts and answers don't exceed ₱100
     if (grade === 1) {
-      amount1 = Math.floor((seed * 7919) % 99) + 1; // 1-99
-      const maxAmount2 = Math.min(100 - amount1, 99);
-      amount2 = Math.floor((seed * 9973) % maxAmount2) + 1;
+      const cap = Math.min(max, 100);
+      amount1 = Math.floor((seed * 7919) % (cap - 1)) + 1;
+      const maxAmount2 = Math.min(cap - amount1, cap - 1);
+      amount2 = Math.floor((seed * 9973) % Math.max(maxAmount2, 1)) + 1;
     } else {
-      amount1 = Math.floor((seed * 7919) % (max / 2));
-      amount2 = Math.floor((seed * 9973) % (max / 2));
+      amount1 = Math.floor((seed * 7919) % (max / 2)) + 1;
+      amount2 = Math.floor((seed * 9973) % (max / 2)) + 1;
     }
+
+    const skill = 'Money (Philippine Peso)';
+    const name1 = this.randomName(seed);
+    const name2 = this.randomName(seed + 3);
+    const scenario = this.randomScenario(seed);
+    const item = this.randomItem(scenario, seed);
+    const variantRoll = (index * 7 + 11) % 100;
     
-    // Vary question types
-    const qType = index % 3;
-    let question, answer;
+    // Filipino-contextualized word problems for all money questions
+    const qType = index % 4;
+    let question, answer, explanation;
     
     if (qType === 0) {
-      question = `If you have ₱${amount1} and spend ₱${amount2}, how much is left?`;
-      answer = Math.max(0, amount1 - amount2);
+      question = `${name1} has ₱${amount1}. After buying ${item} at the ${scenario.place} for ₱${Math.min(amount1, amount2)}, how much money is left?`;
+      answer = amount1 - Math.min(amount1, amount2);
+      explanation = `Step 1: ${name1} starts with ₱${amount1}.\nStep 2: The ${item} costs ₱${Math.min(amount1, amount2)}.\nStep 3: ₱${amount1} - ₱${Math.min(amount1, amount2)} = ₱${answer}.\nThe answer is ₱${answer}.`;
     } else if (qType === 1) {
-      question = `Maria has ₱${amount1} and Juan has ₱${amount2}. How much do they have together?`;
-      answer = amount1 + amount2;
-      // For Grade 1, ensure answer doesn't exceed 100
-      if (grade === 1 && answer > 100) {
+      const totalAmount = amount1 + amount2;
+      if (grade === 1 && totalAmount > 100) {
         amount2 = 100 - amount1;
-        answer = 100;
-        question = `Maria has ₱${amount1} and Juan has ₱${amount2}. How much do they have together?`;
       }
+      question = `${name1} saved ₱${amount1} and ${name2} saved ₱${amount2}. How much did they save together?`;
+      answer = amount1 + amount2;
+      explanation = `Step 1: ${name1} saved ₱${amount1}.\nStep 2: ${name2} saved ₱${amount2}.\nStep 3: Add: ₱${amount1} + ₱${amount2} = ₱${answer}.\nThe answer is ₱${answer}.`;
+    } else if (qType === 2) {
+      const cost = Math.max(amount1, amount2);
+      const budget = Math.min(amount1, amount2);
+      const needed = Math.max(0, cost - budget);
+      question = `${item} at the ${scenario.place} costs ₱${cost}. ${name1} only has ₱${budget}. How much more does ${name1} need?`;
+      answer = needed;
+      explanation = `Step 1: The ${item} costs ₱${cost}.\nStep 2: ${name1} has ₱${budget}.\nStep 3: ₱${cost} - ₱${budget} = ₱${needed}.\n${name1} needs ₱${needed} more.`;
     } else {
-      question = `A toy costs ₱${amount1}. If you have ₱${amount2}, how much more do you need?`;
-      answer = Math.max(0, amount1 - amount2);
+      // True/False money question
+      const sum = amount1 + amount2;
+      const wrongSum = sum + ((seed % 5) + 1);
+      const showCorrect = index % 2 === 0;
+      const shown = showCorrect ? sum : wrongSum;
+      return {
+        question: `True or False: ₱${amount1} + ₱${amount2} = ₱${shown}`,
+        type: 'true-false',
+        options: ['True', 'False'],
+        correctAnswer: showCorrect ? 0 : 1,
+        icon: '🪙',
+        skill,
+        explanation: `₱${amount1} + ₱${amount2} = ₱${sum}. The statement says ₱${shown}, so the answer is ${showCorrect ? 'True' : 'False'}.`
+      };
     }
     
     return {
       question: question,
       type: 'number',
       correctAnswer: answer,
-      icon: '🪙'
+      icon: '🪙',
+      skill,
+      explanation
     };
   }
 
   generateTimeQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     
     // Grade 1: Non-standard measurement - focus on hours, half-hours, quarter hours, days, weeks, months, years
     if (grade === 1 || (outcome.includes('non-standard') && !outcome.includes('minute') && !outcome.includes('a.m.') && !outcome.includes('p.m.'))) {
@@ -747,7 +1018,7 @@ class CurriculumQuestionGenerator {
   }
 
   generateLengthQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     
     // Grade 1: Use non-standard units (e.g., paper clips, cubes, blocks)
     if (grade === 1 || (outcome.includes('non-standard') && !outcome.includes('cm') && !outcome.includes('meter'))) {
@@ -796,7 +1067,7 @@ class CurriculumQuestionGenerator {
   }
 
   generateMassQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const mass1 = (Math.floor(seed * 7919) % 50) + 1;
     const mass2 = (Math.floor(seed * 9973) % 50) + 1;
     
@@ -809,7 +1080,7 @@ class CurriculumQuestionGenerator {
   }
 
   generateVolumeQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const length = (Math.floor(seed * 7919) % 10) + 1;
     const width = (Math.floor(seed * 9973) % 10) + 1;
     const height = (Math.floor(seed * 7919 * 9973) % 10) + 1;
@@ -823,7 +1094,7 @@ class CurriculumQuestionGenerator {
   }
 
   generateDataQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     
     // Grade 1: Pictographs without scale - simple counting of pictures
     if (grade === 1 || (outcome.includes('pictograph') && outcome.includes('without scale'))) {
@@ -879,7 +1150,7 @@ class CurriculumQuestionGenerator {
   }
 
   generateProbabilityQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     const total = (Math.floor(seed * 7919) % 10) + 5;
     const favorable = (Math.floor(seed * 9973) % total) + 1;
     
@@ -961,7 +1232,7 @@ class CurriculumQuestionGenerator {
   }
 
   generateProblemSolvingQuestion(grade, index, outcome) {
-    const seed = (Date.now() % 1000) + (index * 97);
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 97);
     
     // Grade 1: Apply counting, addition, subtraction, and pattern recognition to solve real-life problems
     // Numbers should be within Grade 1 limits (sums up to 100, both numbers less than 100)
@@ -1217,6 +1488,91 @@ class CurriculumQuestionGenerator {
 
   gcd(a, b) {
     return b === 0 ? a : this.gcd(b, a % b);
+  }
+
+  generateProblemSolvingQuestion(grade, index, outcome, difficulty) {
+    const diff = difficulty || 'medium';
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 137);
+    const name1 = this.randomName(seed);
+    const name2 = this.randomName(seed + 5);
+    const scenario = this.randomScenario(seed);
+    const item = this.randomItem(scenario, seed);
+
+    let maxNum = grade <= 2 ? 50 : grade <= 4 ? 500 : 5000;
+    if (diff === 'easy') maxNum = Math.round(maxNum * 0.3);
+    else if (diff === 'hard') maxNum = Math.round(maxNum * 1.5);
+
+    const a = (Math.floor(seed * 7919) % maxNum) + 1;
+    const b = (Math.floor(seed * 9973) % Math.min(a, maxNum)) + 1;
+    
+    const problemType = index % 3;
+    if (problemType === 0) {
+      const answer = a + b;
+      return {
+        question: `${name1} has ${a} pesos. ${name2} gave ${name1} ${b} more pesos. How much money does ${name1} have now?`,
+        type: 'number',
+        correctAnswer: answer,
+        icon: '🧩',
+        skill: 'Word Problems',
+        explanation: `Step 1: ${name1} starts with ₱${a}.\nStep 2: ${name2} gives ₱${b} more.\nStep 3: ₱${a} + ₱${b} = ₱${answer}.\nThe answer is ₱${answer}.`
+      };
+    } else if (problemType === 1) {
+      const answer = a - b;
+      return {
+        question: `There were ${a} ${item} at the ${scenario.place}. ${b} were sold. How many ${item} are left?`,
+        type: 'number',
+        correctAnswer: answer,
+        icon: '🧩',
+        skill: 'Word Problems',
+        explanation: `Step 1: Start with ${a} ${item}.\nStep 2: ${b} were sold.\nStep 3: ${a} - ${b} = ${answer}.\nThe answer is ${answer}.`
+      };
+    } else {
+      const factor = Math.min(12, (seed % 8) + 2);
+      const answer = factor * b;
+      return {
+        question: `${name1} bought ${factor} packs of ${item} at the ${scenario.place}. Each pack has ${b} pieces. How many pieces of ${item} does ${name1} have?`,
+        type: 'number',
+        correctAnswer: answer,
+        icon: '🧩',
+        skill: 'Word Problems',
+        explanation: `Step 1: ${name1} has ${factor} packs.\nStep 2: Each pack has ${b} pieces.\nStep 3: ${factor} × ${b} = ${answer}.\nThe answer is ${answer}.`
+      };
+    }
+  }
+
+  generateDefaultQuestion(grade, index, category, difficulty) {
+    const diff = difficulty || 'medium';
+    const seed = (Math.floor(Math.random() * 1000000)) + (index * 137);
+    let max = grade <= 2 ? 50 : grade <= 4 ? 500 : 5000;
+    if (diff === 'easy') max = Math.round(max * 0.3);
+    else if (diff === 'hard') max = Math.round(max * 1.5);
+
+    const a = (Math.floor(seed * 7919) % max) + 1;
+    const b = (Math.floor(seed * 9973) % max) + 1;
+
+    if (index % 2 === 0) {
+      const answer = a + b;
+      return {
+        question: `What is ${a} + ${b}?`,
+        type: 'number',
+        correctAnswer: answer,
+        icon: '📝',
+        skill: category || 'Mathematics',
+        explanation: `${a} + ${b} = ${answer}.`
+      };
+    } else {
+      const larger = Math.max(a, b);
+      const smaller = Math.min(a, b);
+      const answer = larger - smaller;
+      return {
+        question: `What is ${larger} - ${smaller}?`,
+        type: 'number',
+        correctAnswer: answer,
+        icon: '📝',
+        skill: category || 'Mathematics',
+        explanation: `${larger} - ${smaller} = ${answer}.`
+      };
+    }
   }
 
   initializeTemplates() {

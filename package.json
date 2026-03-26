@@ -1,33 +1,25 @@
 {
   "name": "mathify",
   "version": "1.0.0",
-  "description": "",
-  "main": "backend/main.js",
+  "description": "Mathify Educational Application",
+  "main": "backend/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron .",
+    "start": "node backend/server.js",
     "db:view": "node scripts/db-helper.js view",
     "db:init": "node scripts/db-helper.js init",
     "db:reset": "node scripts/db-helper.js reset",
     "db:help": "node scripts/db-helper.js help",
+    "seed:all": "node scripts/seed-all-quarters.js",
     "seed:curriculum": "node scripts/seed-curriculum.js",
-    "seed:grade1": "node scripts/seed-grade1-quarters.js",
-    "seed:grade2": "node scripts/seed-grade2-quarters.js",
-    "seed:grade3": "node scripts/seed-grade3-quarters.js",
-    "seed:grade4": "node scripts/seed-grade4-quarters.js",
-    "seed:grade5": "node scripts/seed-grade5-quarters.js",
-    "seed:grade6": "node scripts/seed-grade6-quarters.js",
-    "seed:all": "node scripts/seed-all-quarters.js"
+    "admin:create": "node scripts/create-admin.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
-    "sqlite3": "^5.1.7",
-    "openai": "^4.20.0"
-  },
-  "devDependencies": {
-    "electron": "^39.2.0"
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "sqlite3": "^5.1.7"
   }
 }
